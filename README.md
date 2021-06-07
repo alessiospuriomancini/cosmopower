@@ -8,10 +8,10 @@
 
 Please have a look [at our code release paper](https://www.google.com) for examples of application of _CosmoPower_ to:
 
-- a 3x2pt analysis from the KiDS and GAMA surveys [van Uitert _et al._ 2018](https://doi.org/10.1093/mnras/sty551)
+- [a 3x2pt analysis from the KiDS and GAMA surveys](https://doi.org/10.1093/mnras/sty551)
 
-- a cosmic shear analysis from the KiDS survey [Asgari et al. 2021](10.1051/0004-6361/202039070)
+- [a cosmic shear analysis from the KiDS survey](10.1051/0004-6361/202039070)
 
 - a simulated _Euclid_-like cosmic shear analysis
 
-- a _Planck_ 2018 TTTEEE analysis [Planck Collaboration 2018](http://dx.doi.org/10.1051/0004-6361/201833910)
+- [a _Planck_ 2018 TTTEEE analysis](http://dx.doi.org/10.1051/0004-6361/201833910)
