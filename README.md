@@ -1,4 +1,4 @@
-#                 <span style="font-variant:small-caps;">CosmoPower</span>
+# <span style="font-variant:small-caps;"><center>CosmoPower</center></span>
 
 _A suite of neural network emulators for matter and CMB power spectra_
 ======================================================================
