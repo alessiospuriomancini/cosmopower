@@ -13,7 +13,7 @@ Please have a look [at our code release paper](https://www.google.com) for examp
 
 - [a 3x2pt analysis](https://doi.org/10.1093/mnras/sty551) from the KiDS and GAMA surveys
 
-![alt text](https://github.com/alessiospuriomancini/cosmopower/images/class_vs_cosmopower_kxg.png "KiDS-450+GAMA")
+![alt text](https://github.com/alessiospuriomancini/cosmopower/images/class_vs_cosmopower_kxg.png)
 
 - [a cosmic shear analysis](10.1051/0004-6361/202039070) from the KiDS survey
 
