@@ -1,8 +1,9 @@
-# CosmoPower
+# <span style="font-variant:small-caps;">CosmoPower</span>
 
 _A suite of neural network emulators for matter and CMB power spectra_
+======================================================================
 
-*CosmoPower* is a suite of neural cosmological power spectrum emulators developed to accelerate by orders-of-magnitude parameter estimation from two-point statistics analyses of Large-Scale Structure (LSS) and Cosmic Microwave Background(CMB) surveys. The emulators replace the computation of matter and CMB power spectra from Boltzmann codes such as _CAMB_ and _CLASS_, and they are tested against these codes for Stage IV survey configurations.
+<span style="font-variant:small-caps;">CosmoPower</span> is a suite of neural cosmological power spectrum emulators developed to accelerate by orders-of-magnitude parameter estimation from two-point statistics analyses of Large-Scale Structure (LSS) and Cosmic Microwave Background (CMB) surveys. The emulators replace the computation of matter and CMB power spectra from Boltzmann codes such as CAMB and CLASS, and they are tested against these codes for different survey configurations.
 
 Please have a look [at our code release paper](https://www.google.com) for examples of application of _CosmoPower_ to:
 
