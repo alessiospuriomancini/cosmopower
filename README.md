@@ -7,7 +7,7 @@ In the meantime, please do get in touch (_a dot spuriomancini at ucl dot ac dot 
 
 ---
 
-`CosmoPower` is a suite of neural cosmological power spectrum emulators developed to accelerate by orders-of-magnitude parameter estimation from two-point statistics analyses of Large-Scale Structure (LSS) and Cosmic Microwave Background (CMB) surveys. The emulators replace the computation of matter and CMB power spectra from Boltzmann codes such as CAMB and CLASS, and they are tested against these codes for different survey configurations.
+`CosmoPower` is a suite of neural cosmological power spectrum emulators developed to accelerate by orders of magnitude parameter estimation from two-point statistics analyses of Large-Scale Structure (LSS) and Cosmic Microwave Background (CMB) surveys. The emulators replace the computation of matter and CMB power spectra from Boltzmann codes such as CAMB and CLASS, and they are tested against these codes for different survey configurations.
 
 Please have a look [at our code release paper](https://arxiv.org/abs/2106.03846) for examples of application of `CosmoPower` to:
 
@@ -17,7 +17,7 @@ Please have a look [at our code release paper](https://arxiv.org/abs/2106.03846)
 
 ---
 
-- [a cosmic shear analysis](10.1051/0004-6361/202039070) from the KiDS survey
+- [a cosmic shear analysis](https://doi.org/10.1051/0004-6361/202039070) from the KiDS survey
 
 ![alt text](https://github.com/alessiospuriomancini/cosmopower/blob/main/images/class_vs_cosmopower_k1k.png "KiDS-1000")
 
