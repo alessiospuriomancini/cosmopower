@@ -1,0 +1,3 @@
+# tests
+
+This folder contains tests for the main ``CosmoPower`` classes [``cosmopower_NN``](https://github.com/alessiospuriomancini/cosmopower/blob/main/cosmopower/cosmopower_NN.py) and [``cosmopower_PCAplusNN``](https://github.com/alessiospuriomancini/cosmopower/blob/main/cosmopower/cosmopower_PCAplusNN.py) (the latter also requires [``cosmopower_PCA``](https://github.com/alessiospuriomancini/cosmopower/blob/main/cosmopower/cosmopower_PCA.py)). The folder [tt_data](https://github.com/alessiospuriomancini/cosmopower/blob/main/cosmopower/tests/tt_data) contains very small CMB TT datasets used in the testing scripts.

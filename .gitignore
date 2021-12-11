@@ -1,0 +1,24 @@
+# build
+build/
+cosmopower.egg-info/
+dist/
+
+# cache
+__pycache__/
+cosmopower/__pycache__
+cosmopower/likelihoods/__pycache__
+cosmopower/likelihoods/tf_planck2018_lite/__pycache__
+tests/__pycache__
+
+# docs
+site/
+
+# data
+spectra_small_te/
+
+# notebooks
+notebooks/so_noise_models
+notebooks/.ipynb_checkpoints
+notebooks/likelihoods_notebooks/.ipynb_checkpoints
+notebooks/getting_started_notebooks/.ipynb_checkpoints
+notebooks/training_notebooks/.ipynb_checkpoints

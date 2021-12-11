@@ -1,0 +1,89 @@
+site_name: CosmoPower
+site_url: "https://alessiospuriomancini.github.io/cosmopower/"
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Tutorials and Examples:
+      - Getting Started:
+        - NN emulation: tutorial/getting_started/getting_started_with_cosmopower_NN/getting_started_with_cosmopower_NN.md
+        - PCA+NN emulation: tutorial/getting_started/getting_started_with_cosmopower_PCAplusNN/getting_started_with_cosmopower_PCAplusNN.md
+      - Training:
+        - Data generation: 
+            - Latin Hypercube Sampling the emulator parameters: tutorial/training/data_generation/create_params.md
+            - Creating the spectra with a Boltzmann code: tutorial/training/data_generation/create_spectra.md
+            - Preparing the data for training: tutorial/training/data_generation/format.md
+        - NN training: tutorial/training/NN/training_NN.md
+        - PCA+NN training: tutorial/training/PCAplusNN/training_PCAplusNN.md
+      - Likelihoods:
+        - TensorFlow Planck-lite 2018 likelihood: tutorial/likelihoods/tf_planck2018_lite.md
+  - Contribute/Support/Community: contribute.md
+  - Code Reference:
+     - cosmopower_NN: API/cosmopower_NN-reference.md
+     - cosmopower_PCA: API/cosmopower_PCA-reference.md
+     - cosmopower_PCAplusNN: API/cosmopower_PCAplusNN-reference.md
+  - Citation: citation.md
+
+repo_name: 'alessiospuriomancini/cosmopower'
+repo_url: http://github.com/alessiospuriomancini/cosmopower
+
+theme:
+  name: 'material'
+  palette:
+    primary: 'indigo'
+    accent: 'indigo' 
+  logo: 'static/favicon_logo.jpg'
+  collapse_navigation: False
+  favicon: 'static/favicon_logo.jpg'
+
+extra:
+  social:
+    - icon: 'fontawesome/brands/github'
+      link: 'https://github.com/alessiospuriomancini/cosmopower'
+
+markdown_extensions:
+  - extra
+  - smarty
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: true
+            heading_level: 3
+      watch:
+        - ../cosmopower
+
+extra_css:
+  - 'static/global.css'

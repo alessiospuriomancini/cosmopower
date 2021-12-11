@@ -1,0 +1,11 @@
+tensorflow>2.0
+sklearn
+tqdm
+gdown
+jupyter
+mkdocs-material
+mkdocstrings
+matplotlib
+pytest
+pyDOE
+tensorflow_probability
