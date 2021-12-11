@@ -9,5 +9,6 @@ If you use ``CosmoPower`` at any point in your work please cite its [release pap
              primaryClass={astro-ph.CO}
              }
 
+
 If you use a specific likelihood or trained model then in addition to the [release paper](https://arxiv.org/abs/2106.03846) please _also_ cite their relevant papers (always listed in the corresponding directory).
 
