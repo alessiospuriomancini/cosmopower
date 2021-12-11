@@ -42,7 +42,7 @@ For example, to create and activate an environment called ``cp_env``, use:
 
     conda create -n cp_env python=3.7 pip && conda activate cp_env
 
-Once inside the environment, you can install ``CosmoPower`` (warning: currently, this operation will download about 2GB):
+Once inside the environment, you can install ``CosmoPower``:
 
 - **from PyPI**
 
