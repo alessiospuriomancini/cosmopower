@@ -52,7 +52,7 @@ Once inside the environment, you can install ``CosmoPower``:
 
         git clone https://github.com/alessiospuriomancini/cosmopower
         cd cosmopower
-        pip install -e .
+        pip install .
 
     To test the installation you can use
 
