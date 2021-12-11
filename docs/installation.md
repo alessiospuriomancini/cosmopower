@@ -15,7 +15,7 @@ Once inside the environment, the user can choose to install ``CosmoPower``:
 
         git clone https://github.com/alessiospuriomancini/cosmopower_public
         cd cosmopower
-        pip install -e .
+        pip install .
 
     To test the installation you can use
 
