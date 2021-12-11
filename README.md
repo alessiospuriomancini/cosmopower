@@ -32,7 +32,7 @@ In cosmology, ``CosmoPower`` aims to become a fully _differentiable_ library for
 
 # Documentation
 
-Comprehensive documentation is available [here](https://alessiospuriomancini.github.io/cosmopower/index.html).
+Comprehensive documentation is available [here](https://alessiospuriomancini.github.io/cosmopower/index.md).
 
 
 # Installation
