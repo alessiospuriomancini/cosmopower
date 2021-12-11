@@ -42,11 +42,17 @@ For example, to create and activate an environment called ``cp_env``, use:
 
     conda create -n cp_env python=3.7 pip && conda activate cp_env
 
-Once inside the environment, you can install ``CosmoPower``:
+Once inside the environment, you can install ``CosmoPower`` (warning: currently, this operation will download about 2GB):
 
 - **from PyPI**
 
         pip install cosmopower
+
+    To test the installation, you can use
+
+        python3 -c 'import cosmopower as cp'
+    
+    If you do not have a GPU on your machine, you will see a warning message about it which you can safely ignore.
 
 - **from source**
 
@@ -54,7 +60,7 @@ Once inside the environment, you can install ``CosmoPower``:
         cd cosmopower
         pip install .
 
-    To test the installation you can use
+    To test the installation, you can use
 
         pytest
 
@@ -81,7 +87,7 @@ CosmoPower currently provides two ways to emulate power spectra, implemented in 
  </tr>
 </table>
 
-Below you can find minimal working examples that use ``CosmoPower`` pre-trained models from the [code release paper](https://arxiv.org/abs/2106.03846), shared in the [trained_models](https://github.com/alessiospuriomancini/cosmopower/blob/main/cosmopower/trained_models) folder (see the [Trained models](#trained-models) section for details) to predict power spectra for a given set of input parameters. Further examples are available as demo notebooks in the [getting_started_notebooks](https://github.com/alessiospuriomancini/cosmopower/blob/main/notebooks/getting_started_notebooks) folder, for both [cosmopower_NN](https://github.com/alessiospuriomancini/cosmopower/blob/main/notebooks/getting_started_notebooks/getting_started_with_cosmopower_NN.ipynb) ([![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Fv70tJXCDnlTZYxMzr43q25PK5Kc3G7i?usp=sharing)) and [cosmopower_PCAplusNN](https://github.com/alessiospuriomancini/cosmopower/blob/main/notebooks/getting_started_notebooks/getting_started_with_cosmopower_PCAplusNN.ipynb) ([![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1TZI15JEl0LvSyfoY812TkxueyU72nMGv?usp=sharing)).
+Below you can find minimal working examples that use ``CosmoPower`` pre-trained models from the [code release paper](https://arxiv.org/abs/2106.03846), shared in the [trained_models](https://github.com/alessiospuriomancini/cosmopower/blob/main/cosmopower/trained_models) folder (see the [Trained models](#trained-models) section for details) to predict power spectra for a given set of input parameters. You need to clone the repository and replace ``/path/to/cosmopower`` with the location of the cloned repository to make these examples work. Further examples are available as demo notebooks in the [getting_started_notebooks](https://github.com/alessiospuriomancini/cosmopower/blob/main/notebooks/getting_started_notebooks) folder, for both [cosmopower_NN](https://github.com/alessiospuriomancini/cosmopower/blob/main/notebooks/getting_started_notebooks/getting_started_with_cosmopower_NN.ipynb) ([![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Fv70tJXCDnlTZYxMzr43q25PK5Kc3G7i?usp=sharing)) and [cosmopower_PCAplusNN](https://github.com/alessiospuriomancini/cosmopower/blob/main/notebooks/getting_started_notebooks/getting_started_with_cosmopower_PCAplusNN.ipynb) ([![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1TZI15JEl0LvSyfoY812TkxueyU72nMGv?usp=sharing)).
 
 Note that, whenever possible, we recommend working with models trained on _log_-power spectra, to reduce the dynamic range. Both ``cosmopower_NN`` and ``cosmopower_PCAplusNN`` have methods to provide predictions (cf. ``cp_pca_nn.predictions_np`` in the example below) as well as "10^predictions" (cf. ``cp_nn.ten_to_predictions_np`` in the example below).
 
