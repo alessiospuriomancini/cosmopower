@@ -292,6 +292,8 @@ class tf_planck2018_lite:
 
         # final theory prediction
         X_model = tf.transpose(tf.divide(Cl_bin, tf.square(cal)))
+        
+        print(np.shape(Cl_bin))
 
         # chi2 computation
         diff_vec = tf.subtract(self.X_data, X_model)
