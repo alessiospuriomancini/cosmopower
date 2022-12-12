@@ -28,7 +28,6 @@ jobs:
         pip install .
         pip install mkdocs-material 
         pip install mkdocstrings==0.19.0
-        pip install markdown-include
         pip install -q 'setupext-janitor' #
         pip install pytkdocs[numpy-style]
         mkdocs gh-deploy --force
