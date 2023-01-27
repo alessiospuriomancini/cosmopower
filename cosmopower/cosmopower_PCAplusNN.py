@@ -40,7 +40,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                  restore=False, 
                  restore_filename=None, 
                  trainable=True, 
-                 optimizer=tf.keras.optimizers.Adam(),
+                 optimizer=None,
                  verbose=False,
                  ):
         r"""
@@ -121,7 +121,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 self.alphas[i].assign(self.alphas_[i])
                 self.betas[i].assign(self.betas_[i])
 
-        self.optimizer = optimizer
+        self.optimizer = optimizer or tf.keras.optimizers.Adam()
         self.verbose= verbose
 
         # print initialization info, if verbose
