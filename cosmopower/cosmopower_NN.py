@@ -54,7 +54,7 @@ class cosmopower_NN(tf.keras.Model):
                  restore=False, 
                  restore_filename=None, 
                  trainable=True,
-                 optimizer=tf.keras.optimizers.Adam(),
+                 optimizer=None,
                  verbose=False, 
                  ):
         """
@@ -118,7 +118,7 @@ class cosmopower_NN(tf.keras.Model):
               self.betas[i].assign(self.betas_[i])
 
         # optimizer
-        self.optimizer = optimizer
+        self.optimizer = optimizer or tf.keras.optimizers.Adam()
         self.verbose= verbose
 
         # print initialization info, if verbose
