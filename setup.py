@@ -18,12 +18,18 @@ def read_file(file):
 
 long_description = read_file("README.md")
 
+# Determine whether the system is M1/M2 Mac
+if 'arm' in os.uname().machine:
+    tensorflow = 'tensorflow-metal'
+else:
+    tensorflow = 'tensorflow>2.0'
+
 setup(classifiers=['Operating System :: OS Independent',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Science/Research'
                   ],
       name='cosmopower',
-      version='v0.1.1',
+      version='v0.1.2',
       description='Machine Learning - accelerated Bayesian inference',
       long_description_content_type = "text/markdown",
       long_description = long_description,
@@ -32,7 +38,7 @@ setup(classifiers=['Operating System :: OS Independent',
       license='GNU General Public License v3 (GPLv3)',
       url='https://github.com/alessiospuriomancini/cosmopower',
       packages=find_packages(),
-      install_requires=install_requires,
+      install_requires=[tensorflow, install_requires],
      )
 
 # cd to parent dir of setup.py
