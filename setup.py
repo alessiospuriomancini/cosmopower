@@ -29,7 +29,7 @@ setup(classifiers=['Operating System :: OS Independent',
                    'Intended Audience :: Science/Research'
                   ],
       name='cosmopower',
-      version='v0.1.2',
+      version='v0.1.3',
       description='Machine Learning - accelerated Bayesian inference',
       long_description_content_type = "text/markdown",
       long_description = long_description,
