@@ -1,0 +1,3 @@
+Emulators for LCDM, LCDM+Neff, and LCDM+Alens models trained on high-precision [CAMB](https://github.com/cmbant/CAMB) spectra. Details on the accuracy settings of the training set can be found in Section III A of [Balkenhol et al. 2022](https://arxiv.org/abs/2212.05642). For additional information, please contact Lennart Balkenhol (`lennart_dot_balkenhol_at_iap_dot_fr`) or Alessio Spurio Mancini (`a_dot_spuriomancini_at_ucl_dot_ac_dot_uk`).
+
+If you use these emulators at any point in your work please cite [Balkenhol et al. 2022](https://arxiv.org/abs/2212.05642) and the [CosmoPower release paper](https://arxiv.org/abs/2106.03846).
