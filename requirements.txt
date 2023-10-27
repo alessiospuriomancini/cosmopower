@@ -7,4 +7,5 @@ mkdocstrings
 matplotlib
 pytest
 pyDOE
+tensorflow<2.14
 tensorflow_probability
