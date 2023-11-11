@@ -8,4 +8,4 @@ matplotlib
 pytest
 pyDOE
 tensorflow<2.14
-tensorflow_probability
+tensorflow_probability<0.22
