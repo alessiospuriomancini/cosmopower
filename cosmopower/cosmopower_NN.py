@@ -210,6 +210,47 @@ class cosmopower_NN(tf.keras.Model):
         """
         return tf.pow(10., self.predictions_tf(parameters_tensor))
 
+    # tensor resclae predictions
+    @tf.function
+    def rescaled_predictions_tf(self, 
+                           parameters_tensor
+                           ):
+        r"""
+        10^predictions given tensor of input parameters,
+        fully implemented in TensorFlow. It raises 10 to the output
+        of ``predictions_tf``
+
+        Parameters:
+            parameters_tensor (Tensor):
+                input parameters
+
+        Returns:
+            Tensor:
+                output predictions * scaling_division + scaling_subtraction
+        """
+        return tf.add(tf.multiply(self.predictions_tf(parameters_tensor), self.scaling_division), self.scaling_subtraction)
+       
+    # tensor 10.**rescaled predictions
+    @tf.function
+    def ten_to_rescaled_predictions_tf(self, 
+                           parameters_tensor
+                           ):
+        r"""
+        10^predictions given tensor of input parameters,
+        fully implemented in TensorFlow. It raises 10 to the output
+        of ``rescale_predictions_tf``
+
+        Parameters:
+            parameters_tensor (Tensor):
+                input parameters
+
+        Returns:
+            Tensor:
+                10^output rescaled predictions
+        """
+        return tf.pow(10., self.rescaled_predictions_tf(parameters_tensor)) 
+
+
 
 # ============= SAVE/LOAD model =============
 
@@ -229,6 +270,9 @@ class cosmopower_NN(tf.keras.Model):
         self.parameters_std_ = self.parameters_std.numpy()
         self.features_mean_ = self.features_mean.numpy()
         self.features_std_ = self.features_std.numpy()
+        
+        self.scaling_subtraction_ = self.scaling_subtraction.numpy()
+        self.scaling_division_ = self.scaling_division.numpy()
 
 
     # save
@@ -383,6 +427,46 @@ class cosmopower_NN(tf.keras.Model):
         return 10.**self.predictions_np(parameters_dict)
 
 
+    # Numpy array 10.**predictions
+    def rescaled_predictions_np(self,
+                            parameters_dict
+                            ):
+        r"""
+        resclaing of the predictions given input parameters collected in a dict.
+        Fully implemented in Numpy. It raises 10 to the output
+        from ``forward_pass_np``
+
+        Parameters:
+            parameters_dict (dict [numpy.ndarray]):
+                dictionary of (arrays of) parameters
+
+        Returns:
+            numpy.ndarray:
+                output predictions * scaling_division + scaling_subtraction
+        """
+        
+        return self.predictions_np(parameters_dict)* self.scaling_division_+ self.scaling_subtraction_
+
+    
+    # Numpy array 10.**rescaled predictions
+    def ten_to_rescaled_predictions_np(self,
+                            parameters_dict
+                            ):
+        r"""
+        10^predictions given input parameters collected in a dict.
+        Fully implemented in Numpy. It raises 10 to the output
+        from ``forward_pass_np``
+
+        Parameters:
+            parameters_dict (dict [numpy.ndarray]):
+                dictionary of (arrays of) parameters
+
+        Returns:
+            numpy.ndarray:
+                10^output rescaled predictions
+        """
+        return 10.**self.rescaled_predictions_np(parameters_dict)
+
 
     ### Infrastructure for network training ###
 
@@ -515,6 +599,8 @@ class cosmopower_NN(tf.keras.Model):
               training_parameters,
               training_features,
               filename_saved_model,
+              scaling_subtraction=None,
+              scaling_divison=None,
               # cooling schedule
               validation_split=0.1,
               learning_rates=[1e-2, 1e-3, 1e-4, 1e-5, 1e-6],
@@ -571,14 +657,26 @@ class cosmopower_NN(tf.keras.Model):
         self.parameters_mean = np.mean(training_parameters, axis=0)
         self.parameters_std = np.std(training_parameters, axis=0)
 
-        # features standardisation
-        self.features_mean = np.mean(training_features, axis=0)
-        self.features_std = np.std(training_features, axis=0)
-
         # input parameters mean and std
         self.parameters_mean = tf.constant(self.parameters_mean, dtype=dtype, name='parameters_mean')
         self.parameters_std = tf.constant(self.parameters_std, dtype=dtype, name='parameters_std')
+        
+        # features scaling
+        self.scaling_subtraction = scaling_subtraction if scaling_subtraction is not None else np.zeros(self.n_modes)
+        self.scaling_division = scaling_divison if scaling_divison is not None else np.ones(self.n_modes)
+        
+        training_features = (training_features-self.scaling_subtraction)/self.scaling_division
 
+        self.scaling_subtraction = tf.constant(self.scaling_subtraction, dtype=dtype, name='subtraction')
+        self.scaling_division = tf.constant(self.scaling_division, dtype=dtype, name='division')
+
+        
+        
+
+        # features standardisation
+        self.features_mean = np.mean(training_features, axis=0)
+        self.features_std = np.std(training_features, axis=0)
+        
         # (log)-spectra mean and std
         self.features_mean = tf.constant(self.features_mean, dtype=dtype, name='features_mean')
         self.features_std = tf.constant(self.features_std, dtype=dtype, name='features_std')
