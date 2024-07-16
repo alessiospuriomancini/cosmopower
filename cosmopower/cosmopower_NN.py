@@ -228,7 +228,7 @@ class cosmopower_NN(tf.keras.Model):
             Tensor:
                 output predictions * scaling_division + scaling_subtraction
         """
-        return tf.add(tf.multiply(self.predictions_tf(parameters_tensor), self.scaling_division), self.scaling_subtraction)
+        return self.postprocessing_tf(self.predictions_tf(parameters_tensor),self.processing_vectors_tf)
        
     # tensor 10.**rescaled predictions
     @tf.function
@@ -271,8 +271,6 @@ class cosmopower_NN(tf.keras.Model):
         self.features_mean_ = self.features_mean.numpy()
         self.features_std_ = self.features_std.numpy()
         
-        self.scaling_subtraction_ = self.scaling_subtraction.numpy()
-        self.scaling_division_ = self.scaling_division.numpy()
 
 
     # save
@@ -445,7 +443,7 @@ class cosmopower_NN(tf.keras.Model):
                 output predictions * scaling_division + scaling_subtraction
         """
         
-        return self.predictions_np(parameters_dict)* self.scaling_division_+ self.scaling_subtraction_
+        return self.postprocessing_np(self.predictions_np(parameters_dict),self.processing_vectors_np)
 
     
     # Numpy array 10.**rescaled predictions
@@ -599,8 +597,10 @@ class cosmopower_NN(tf.keras.Model):
               training_parameters,
               training_features,
               filename_saved_model,
-              scaling_subtraction=None,
-              scaling_divison=None,
+              preprocessing=None,
+              postprocessing_np=None,
+              postprocessing_tf=None,
+              processing_vectors={},
               # cooling schedule
               validation_split=0.1,
               learning_rates=[1e-2, 1e-3, 1e-4, 1e-5, 1e-6],
@@ -661,18 +661,61 @@ class cosmopower_NN(tf.keras.Model):
         self.parameters_mean = tf.constant(self.parameters_mean, dtype=dtype, name='parameters_mean')
         self.parameters_std = tf.constant(self.parameters_std, dtype=dtype, name='parameters_std')
         
+        
         # features scaling
-        self.scaling_subtraction = scaling_subtraction if scaling_subtraction is not None else np.zeros(self.n_modes)
-        self.scaling_division = scaling_divison if scaling_divison is not None else np.ones(self.n_modes)
+        if(preprocessing=='mean_sigma'):
+            processing_vectors = {'mean':np.mean(training_features,axis=0), 'sigma':np.std(training_features,axis=0)}
+            
+            def preprocessing(features,processing_vectors):
+                print(processing_vectors)
+                return (features-processing_vectors['mean'])/processing_vectors['sigma']
+            
+            def postprocessing_np(features,processing_vectors):
+                return features*processing_vectors['sigma'] + processing_vectors['mean']
+            
+            @tf.function
+            def postprocessing_tf(features,processing_vectors):
+                return tf.add(tf.multiply(features, processing_vectors['sigma']), processing_vectors['mean'])
+               
+            
+        if(preprocessing=='min_max'):
+            processing_vectors = {'min':np.min(training_features,axis=0), 'max':np.max(training_features,axis=0)}
+            
+            def preprocessing(features,processing_vectors):
+                return (features-processing_vectors['min'])/(processing_vectors['max']-processing_vectors['min'])
+            
+            def postprocessing_np(features,processing_vectors):
+                return features*(processing_vectors['max']-processing_vectors['min']) + processing_vectors['min']
+            
+            @tf.function
+            def postprocessing_tf(features,processing_vectors):
+                return tf.add(tf.multiply(features, tf.subtract(processing_vectors['max'],processing_vectors['min'])), processing_vectors['min'])
+            
+            
+        if(preprocessing==None):
+            def preprocessing(features,preprocessing):
+                return features
+            
+            def postprocessing_np(features,preprocessing):
+                return features
         
-        training_features = (training_features-self.scaling_subtraction)/self.scaling_division
-
-        self.scaling_subtraction = tf.constant(self.scaling_subtraction, dtype=dtype, name='subtraction')
-        self.scaling_division = tf.constant(self.scaling_division, dtype=dtype, name='division')
-
+            @tf.function
+            def postprocessing_tf(features,preprocessing):
+                return features
+            
         
+        self.preprocessing = preprocessing
+        self.postprocessing_np = postprocessing_np
+        self.postprocessing_tf = postprocessing_tf
         
-
+        self.processing_vectors_np = processing_vectors
+        self.processing_vectors_tf = {}
+        if(preprocessing is not None):
+            for name in list(processing_vectors.keys()):
+                self.processing_vectors_tf[name] = tf.constant(self.processing_vectors_np[name], dtype=dtype, name=name)
+                
+        training_features = self.preprocessing(training_features,self.processing_vectors_np)
+        
         # features standardisation
         self.features_mean = np.mean(training_features, axis=0)
         self.features_std = np.std(training_features, axis=0)
