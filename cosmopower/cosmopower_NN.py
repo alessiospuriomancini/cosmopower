@@ -210,7 +210,7 @@ class cosmopower_NN(tf.keras.Model):
         """
         return tf.pow(10., self.predictions_tf(parameters_tensor))
 
-    # tensor resclae predictions
+    # tensor rescale predictions
     @tf.function
     def rescaled_predictions_tf(self, 
                            parameters_tensor
