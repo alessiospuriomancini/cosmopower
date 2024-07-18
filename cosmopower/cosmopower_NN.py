@@ -667,7 +667,6 @@ class cosmopower_NN(tf.keras.Model):
             processing_vectors = {'mean':np.mean(training_features,axis=0), 'sigma':np.std(training_features,axis=0)}
             
             def preprocessing(features,processing_vectors):
-                print(processing_vectors)
                 return (features-processing_vectors['mean'])/processing_vectors['sigma']
             
             def postprocessing_np(features,processing_vectors):
