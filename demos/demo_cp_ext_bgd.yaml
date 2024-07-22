@@ -1,0 +1,66 @@
+output: output/democp
+
+params:
+  ombh2:
+    prior:
+      min: 0.01
+      max: 0.05
+    ref: 0.0225
+  omch2:
+    prior:
+      min: 0.01
+      max: 0.90
+    ref: 0.120
+  h:
+    prior:
+      min: 0.4
+      max: 1.0
+    ref: 0.7
+  H0:
+    value: "lambda h: 100.0 * h"
+  logA:
+    prior:
+      min: 2.0
+      max: 4.0
+    ref: 3.05
+  As:
+    value: "lambda logA: 1e-10 * np.exp(logA)"
+  ns:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref: 0.97
+  tau:
+    prior:
+      min: 0.01
+      max: 0.8
+    ref: 0.054
+
+priors:
+  tau_prior: "stats.norm.logpdf(tau, loc = 6.7e-2, scale = 2.3e-2)"
+
+sampler:
+  mcmc:
+
+theory:
+  wrappers.cobaya.CosmoPower:
+    package_file: demos/camb_highacc.yaml
+    provides:
+      Cl:
+        tt:
+        te:
+        ee:
+        pp:
+  camb:
+    extra_args:
+      lens_potential_accuracy: 8
+    provides:
+      angular_diameter_distance:
+      Hubble:
+      fsigma8:
+
+likelihood:
+  bao.sdss_dr12_consensus_final:
+    stop_at_error: True
+  planck_2018_highl_plik.TTTEEE_lite_native:
+    stop_at_error: True

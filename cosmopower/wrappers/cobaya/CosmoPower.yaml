@@ -1,0 +1,14 @@
+package_file:
+root_dir: null
+
+extra_args:
+  lmax: null
+
+renames:
+  ombh2: omega_b
+  omch2: omega_cdm
+  logA: ln10^{10}A_s
+  ns: n_s
+  tau: tau_reio
+  zrei: z_reio
+  rdrag: r_drag

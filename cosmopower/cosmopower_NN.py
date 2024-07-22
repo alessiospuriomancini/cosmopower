@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # Author: Alessio Spurio Mancini
 
+import os
+import warnings
 import numpy as np
 import tensorflow as tf
-import pickle
 from tqdm import trange
 dtype = tf.float32
 
@@ -41,6 +42,8 @@ class cosmopower_NN(tf.keras.Model):
             optimizer for training
         verbose (bool):
             whether to print messages at intermediate steps or not
+        allow_pickle (bool):
+            whether to permit the (legacy) loading of .pkl files.
     """
 
     def __init__(self, 
@@ -50,12 +53,12 @@ class cosmopower_NN(tf.keras.Model):
                  parameters_std=None, 
                  features_mean=None, 
                  features_std=None, 
-                 n_hidden=[512,512,512], 
-                 restore=False, 
+                 n_hidden=[512,512,512],
                  restore_filename=None, 
                  trainable=True,
                  optimizer=None,
-                 verbose=False, 
+                 verbose=False,
+                 allow_pickle=False,
                  ):
         """
         Constructor
@@ -64,8 +67,8 @@ class cosmopower_NN(tf.keras.Model):
         super(cosmopower_NN, self).__init__()
 
         # restore
-        if restore is True:
-            self.restore(restore_filename)
+        if not restore_filename is None:
+            self.restore(restore_filename, allow_pickle = allow_pickle)
 
         # else set variables from input arguments
         else:
@@ -104,12 +107,13 @@ class cosmopower_NN(tf.keras.Model):
         for i in range(self.n_layers):
             self.W.append(tf.Variable(tf.random.normal([self.architecture[i], self.architecture[i+1]], 0., 1e-3), name="W_" + str(i), trainable=trainable))
             self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]), name = "b_" + str(i), trainable=trainable))
+
         for i in range(self.n_layers-1):
             self.alphas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name = "alphas_" + str(i), trainable=trainable))
             self.betas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name = "betas_" + str(i), trainable=trainable))
 
-        # restore weights if restore = True
-        if restore is True:
+        # restore weights if restoring
+        if not restore_filename is None:
             for i in range(self.n_layers):
               self.W[i].assign(self.W_[i])
               self.b[i].assign(self.b_[i])
@@ -126,7 +130,7 @@ class cosmopower_NN(tf.keras.Model):
             multiline_str = "\nInitialized cosmopower_NN model, \n" \
                             f"mapping {self.n_parameters} input parameters to {self.n_modes} output modes, \n" \
                             f"using {len(self.n_hidden)} hidden layers, \n" \
-                            f"with {list(self.n_hidden)} nodes, respectively. \n"
+                            f"with {list(self.n_hidden)} nodes, respectively."
             print(multiline_str)
 
 
@@ -136,8 +140,7 @@ class cosmopower_NN(tf.keras.Model):
     def activation(self, 
                    x, 
                    alpha, 
-                   beta
-                   ):
+                   beta):
         r"""
         Non-linear activation function
 
@@ -159,8 +162,7 @@ class cosmopower_NN(tf.keras.Model):
     # tensor predictions
     @tf.function
     def predictions_tf(self, 
-                       parameters_tensor
-                       ):
+                       parameters_tensor):
         r"""
         Prediction given tensor of input parameters,
         fully implemented in TensorFlow
@@ -168,6 +170,8 @@ class cosmopower_NN(tf.keras.Model):
         Parameters:
             parameters_tensor (Tensor):
                 input parameters
+            training (bool):
+                whether or not we are currently training
 
         Returns:
             Tensor:
@@ -193,8 +197,7 @@ class cosmopower_NN(tf.keras.Model):
     # tensor 10.**predictions
     @tf.function
     def ten_to_predictions_tf(self, 
-                           parameters_tensor
-                           ):
+                           parameters_tensor):
         r"""
         10^predictions given tensor of input parameters,
         fully implemented in TensorFlow. It raises 10 to the output
@@ -231,10 +234,7 @@ class cosmopower_NN(tf.keras.Model):
         self.features_std_ = self.features_std.numpy()
 
 
-    # save
-    def save(self, 
-             filename
-             ):
+    def save(self, filename: str) -> None:
         r"""
         Save network parameters
 
@@ -242,54 +242,126 @@ class cosmopower_NN(tf.keras.Model):
             filename (str):
                 filename tag (without suffix) where model will be saved
         """
-        # attributes
-        attributes = [self.W_, 
-                      self.b_, 
-                      self.alphas_, 
-                      self.betas_, 
-                      self.parameters_mean_, 
-                      self.parameters_std_,
-                      self.features_mean_,
-                      self.features_std_,
-                      self.n_parameters,
-                      self.parameters,
-                      self.n_modes,
-                      self.modes,
-                      self.n_hidden,
-                      self.n_layers,
-                      self.architecture]
+        # Save data as compressed numpy file.
+        attributes = { }
+        attributes["architecture"] = self.architecture
+        attributes["n_layers"] = self.n_layers
+        attributes["n_hidden"] = self.n_hidden
+        attributes["n_parameters"] = self.n_parameters
+        attributes["n_modes"] = self.n_modes
+        
+        attributes["parameters"] = self.parameters
+        attributes["modes"] = self.modes
+        
+        attributes["parameters_mean"] = self.parameters_mean.numpy()
+        attributes["parameters_std"] = self.parameters_std.numpy()
+        attributes["features_mean"] = self.features_mean.numpy()
+        attributes["features_std"] = self.features_std.numpy()
+        
+        for i in range(self.n_layers):
+            attributes[f"W_{i}"] = self.W[i].numpy()
+            attributes[f"b_{i}"] = self.b[i].numpy()
+        for i in range(self.n_layers-1):
+            attributes[f"alphas_{i}"] = self.alphas[i].numpy()
+            attributes[f"betas_{i}"] = self.betas[i].numpy()
+        
+        with open(filename + ".npz", "wb") as fp:
+            np.savez_compressed(fp, **attributes)
 
-        # save attributes to file
-        with open(filename + ".pkl", 'wb') as f:
-            pickle.dump(attributes, f)
 
-
-    # restore attributes
-    def restore(self, 
-                filename
-                ):
+    def restore(self, filename: str, allow_pickle: bool = False) -> None:
         r"""
-        Load pre-trained model
+        Load pre-trained model.
+        The default file format is compressed numpy files (.npz). The
+        Module will attempt to use this as a file extension and restore
+        from there (i.e. look for `filename.npz`). If this file does
+        not exist, and `allow_pickle` is set to True, then the file
+        `filename.pkl` will be attempted to be read by `restore_pickle`.
+
+        The function will trim the file extension from `filename`, so
+        `restore("filename")` and `restore("filename.npz")` are identical.
 
         Parameters:
-            filename (str):
-                filename tag (without suffix) where model was saved
+        :param filename: filename (without suffix) where model was saved.
+        :param allow_pickle: whether or not to permit passing this filename to the `restore_pickle` function.
         """
-        # load attributes
-        with open(filename + ".pkl", 'rb') as f:
-            self.W_, self.b_, self.alphas_, self.betas_, \
-            self.parameters_mean_, self.parameters_std_, \
-            self.features_mean_, self.features_std_, \
-            self.n_parameters, self.parameters, \
-            self.n_modes, self.modes, \
-            self.n_hidden, self.n_layers, self.architecture = pickle.load(f)
+        # Check if npz file exists.
+        filename_npz = filename + ".npz"
+        if not os.path.exists(filename_npz):
+            # Can we load this file as a pickle file?
+            filename_pkl = filename + ".pkl"
+            if allow_pickle and os.path.exists(filename_pkl):
+                self.restore_pickle(filename_pkl)
+                return
+
+            raise IOError(f"Failed to restore network from {filename}: " +
+                (" is a pickle file, try setting 'allow_pickle = True'" if os.path.exists(filename_pkl) else " does not exist."))
+
+        with open(filename_npz, "rb") as fp:
+            fpz = np.load(fp)
+
+            self.architecture = fpz["architecture"]
+            self.n_layers = fpz["n_layers"]
+            self.n_hidden = fpz["n_hidden"]
+            self.n_parameters = fpz["n_parameters"]
+            self.n_modes = fpz["n_modes"]
+
+            self.parameters = list(fpz["parameters"])
+            self.modes = fpz["modes"]
+
+            self.parameters_mean_ = fpz["parameters_mean"]
+            self.parameters_std_ = fpz["parameters_std"]
+            self.features_mean_ = fpz["features_mean"]
+            self.features_std_ = fpz["features_std"]
+
+            self.W_ = [ fpz[f"W_{i}"] for i in range(self.n_layers) ]
+            self.b_ = [ fpz[f"b_{i}"] for i in range(self.n_layers) ]
+            self.alphas_ = [ fpz[f"alphas_{i}"] for i in range(self.n_layers-1) ]
+            self.betas_ = [ fpz[f"betas_{i}"] for i in range(self.n_layers-1) ]
+
+    def restore_pickle(self, filename: str) -> None:
+        r"""
+        Legacy function for restoring model from pickle (.pkl) file.
+        
+        This function might be deprecated in the future, due to the way pickle files are read.
+        
+        Parameters:
+        :param filename: filename (with suffix) where model was saved.
+        """
+        warnings.warn("CosmoPower pickle files might be deprecated at some point in the future. It is recommended that you save your networks as npz files.", DeprecationWarning)
+
+        if not os.path.exists(filename):
+            raise IOError(f"Failed to restore network from {filename}: does not exist.")
+
+        import pickle
+        with open(filename, "rb") as fp:
+            W, b, alphas, betas, parameters_mean, parameters_std, features_mean, features_std, n_parameters, parameters, n_modes, modes, n_hidden, n_layers, architecture = pickle.load(fp)
+
+        self.architecture = architecture
+        self.n_layers = n_layers
+        self.n_hidden = n_hidden
+        self.n_parameters = n_parameters
+        self.n_modes = n_modes
+
+        self.parameters = parameters
+        self.modes = modes
+
+        self.parameters_mean_ = parameters_mean
+        self.parameters_std_ = parameters_std
+        self.features_mean_ = features_mean
+        self.features_std_ = features_std
+
+        self.W_ = [ W[i] for i in range(self.n_layers) ]
+        self.b_ = [ b[i] for i in range(self.n_layers) ]
+        self.alphas_ = [ alphas[i] for i in range(self.n_layers-1) ]
+        self.betas_ = [ betas[i] for i in range(self.n_layers-1) ]
 
 
 # ========== NUMPY implementation ===============
 
     # auxiliary function to sort input parameters
     def dict_to_ordered_arr_np(self, 
-                               input_dict, 
+                               input_dict,
                                ):
         r"""
         Sort input parameters
@@ -302,6 +374,8 @@ class cosmopower_NN(tf.keras.Model):
             numpy.ndarray:
                 parameters sorted according to desired order
         """
+        input_dict = { k : np.atleast_1d(input_dict[k]) for k in input_dict }
+        
         if self.parameters is not None:
             return np.stack([input_dict[k] for k in self.parameters], axis=1)
         else:
@@ -310,8 +384,7 @@ class cosmopower_NN(tf.keras.Model):
 
     # forward prediction given input parameters implemented in Numpy
     def forward_pass_np(self, 
-                        parameters_arr
-                        ):
+                        parameters_arr):
         r"""
         Forward pass through the network to predict the output, 
         fully implemented in Numpy
@@ -344,7 +417,7 @@ class cosmopower_NN(tf.keras.Model):
 
     # Numpy array predictions
     def predictions_np(self, 
-                       parameters_dict
+                       parameters_dict,
                        ):
         r"""
         Predictions given input parameters collected in a dict.
@@ -365,7 +438,7 @@ class cosmopower_NN(tf.keras.Model):
 
     # Numpy array 10.**predictions
     def ten_to_predictions_np(self,
-                            parameters_dict
+                            parameters_dict,
                             ):
         r"""
         10^predictions given input parameters collected in a dict.
@@ -389,8 +462,7 @@ class cosmopower_NN(tf.keras.Model):
     @tf.function
     def compute_loss(self,
                      training_parameters,
-                     training_features
-                     ):
+                     training_features):
         r"""
         Mean squared difference
 
@@ -410,8 +482,7 @@ class cosmopower_NN(tf.keras.Model):
     @tf.function
     def compute_loss_and_gradients(self, 
                                    training_parameters,
-                                   training_features
-                                   ):
+                                   training_features):
         r"""
         Computes mean squared difference and gradients
 
@@ -420,6 +491,8 @@ class cosmopower_NN(tf.keras.Model):
                 input parameters
             training_features (Tensor):
                 true features
+            train (bool):
+                whether we are training or not
 
         Returns:
             loss (Tensor):
@@ -431,7 +504,7 @@ class cosmopower_NN(tf.keras.Model):
         with tf.GradientTape() as tape:
 
             # loss
-            loss = tf.sqrt(tf.reduce_mean(tf.math.squared_difference(self.predictions_tf(training_parameters), training_features))) 
+            loss = tf.sqrt(tf.reduce_mean(tf.math.squared_difference(self.predictions_tf(training_parameters), training_features)))
 
         # compute gradients
         gradients = tape.gradient(loss, self.trainable_variables)
@@ -512,26 +585,23 @@ class cosmopower_NN(tf.keras.Model):
 #         main TRAINING function
 # ==========================================
     def train(self,
-              training_parameters,
-              training_features,
+              training_data,
               filename_saved_model,
               # cooling schedule
               validation_split=0.1,
               learning_rates=[1e-2, 1e-3, 1e-4, 1e-5, 1e-6],
-              batch_sizes=[1024, 1024, 1024, 1024, 1024],
-              gradient_accumulation_steps = [1, 1, 1, 1, 1],
+              batch_sizes=1000,
+              gradient_accumulation_steps = 1,
               # early stopping set up
-              patience_values = [100, 100, 100, 100, 100],
-              max_epochs = [1000, 1000, 1000, 1000, 1000],
+              patience_values = 100,
+              max_epochs = 1000,
              ):
         r"""
         Train the model
 
         Parameters:
-            training_parameters (dict [numpy.ndarray]):
-                input parameters
-            training_features (numpy.ndarray):
-                true features for training
+            training_data (list[Dataset]):
+                list of Datasets that contain training data.
             filename_saved_model (str):
                 filename tag where model will be saved
             validation_split (float):
@@ -547,6 +617,12 @@ class cosmopower_NN(tf.keras.Model):
             max_epochs (list [int]):
                 maximum number of epochs for each step of learning schedule
         """
+        n_iter = len(learning_rates)
+        if type(batch_sizes) != list: batch_sizes = n_iter * [batch_sizes]
+        if type(gradient_accumulation_steps) != list: gradient_accumulation_steps = n_iter * [gradient_accumulation_steps]
+        if type(patience_values) != list: patience_values = n_iter * [patience_values]
+        if type(max_epochs) != list: max_epochs = n_iter * [max_epochs]
+        
         # check correct number of steps
         assert len(learning_rates)==len(batch_sizes)\
                ==len(gradient_accumulation_steps)==len(patience_values)==len(max_epochs), \
@@ -564,16 +640,38 @@ class cosmopower_NN(tf.keras.Model):
                             f"{list(max_epochs)} max epochs \n"
             print(multiline_str)
 
-        # from dict to array
-        training_parameters = self.dict_to_ordered_arr_np(training_parameters)
+        #training_parameters = self.dict_to_ordered_arr_np(training_parameters)
+        training_parameters = None
+        training_features = None
+        
+        progress_file = open(filename_saved_model + ".progress", "w")
+        progress_file.write("# Learning step\tLearning rate\tBatch size\tEpoch\tValidation loss\tBest loss\n")
+        progress_file.flush()
 
-        # parameters standardisation
-        self.parameters_mean = np.mean(training_parameters, axis=0)
-        self.parameters_std = np.std(training_parameters, axis=0)
-
-        # features standardisation
-        self.features_mean = np.mean(training_features, axis=0)
-        self.features_std = np.std(training_features, axis=0)
+        self.parameters_mean = None
+        self.parameters_std = None
+        self.features_mean = None
+        self.features_std = None
+        
+        for dataset in training_data:
+            with dataset:
+                parameters, features = dataset.read_data()
+            
+            m = ~np.logical_or(np.any(np.isnan(parameters), axis = 1), np.any(np.isnan(features), axis = 1))
+            parameters = parameters[m,:]
+            features = features[m,:]
+            
+            if training_parameters is None:
+                training_parameters = parameters
+                training_features = features
+            else:
+                training_parameters = np.concatenate((training_parameters, parameters))
+                training_features = np.concatenate((training_features, features))
+        
+        self.parameters_mean = np.nanmean(training_parameters, axis = 0)
+        self.parameters_std = np.nanstd(training_parameters, axis = 0)
+        self.features_mean = np.nanmean(training_features, axis = 0)
+        self.features_std = np.nanstd(training_features, axis = 0)
 
         # input parameters mean and std
         self.parameters_mean = tf.constant(self.parameters_mean, dtype=dtype, name='parameters_mean')
@@ -584,13 +682,13 @@ class cosmopower_NN(tf.keras.Model):
         self.features_std = tf.constant(self.features_std, dtype=dtype, name='features_std')
 
         # training/validation split
-        n_validation = int(training_parameters.shape[0] * validation_split)
-        n_training = training_parameters.shape[0] - n_validation
-
-        # casting
-        training_parameters = tf.convert_to_tensor(training_parameters, dtype=dtype)
-        training_features = tf.convert_to_tensor(training_features, dtype=dtype)
-
+        n_samples = training_parameters.shape[0]
+        n_validation = int(n_samples * validation_split)
+        n_training = int(n_samples) - n_validation
+        
+        training_parameters = tf.convert_to_tensor(training_parameters, dtype = dtype)
+        training_features = tf.convert_to_tensor(training_features, dtype = dtype)
+        
         # train using cooling/heating schedule for lr/batch-size
         for i in range(len(learning_rates)):
 
@@ -599,11 +697,12 @@ class cosmopower_NN(tf.keras.Model):
             # set learning rate
             self.optimizer.lr = learning_rates[i]
 
-            # split into validation and training sub-sets
-            training_selection = tf.random.shuffle([True] * n_training + [False] * n_validation)
-
-            # create iterable dataset (given batch size)
-            training_data = tf.data.Dataset.from_tensor_slices((training_parameters[training_selection], training_features[training_selection])).shuffle(n_training).batch(batch_sizes[i])
+            # Split the data into a training and validation dataset, and batch them.
+            split = tf.random.shuffle([True] * n_training + [False] * n_validation)
+            
+            training_data = tf.data.Dataset.from_tensor_slices((training_parameters[split], training_features[split])).shuffle(n_training).batch(batch_sizes[i])
+            validation_parameters = training_parameters[~split]
+            validation_features = training_features[~split]
 
             # set up training loss
             training_loss = [np.infty]
@@ -623,25 +722,33 @@ class cosmopower_NN(tf.keras.Model):
                         else:
                             loss = self.training_step_with_accumulated_gradients(theta, feats, accumulation_steps=gradient_accumulation_steps[i])
 
-                    # compute validation loss at the end of the epoch
-                    validation_loss.append(self.compute_loss(training_parameters[~training_selection], training_features[~training_selection]).numpy())
-
-                    # update the progressbar
-                    t.set_postfix(loss=validation_loss[-1])
+                    vloss = self.compute_loss(validation_parameters, validation_features).numpy()
+                    validation_loss.append(vloss)
 
                     # early stopping condition
-                    if validation_loss[-1] < best_loss:
-                        best_loss = validation_loss[-1]
+                    if vloss < best_loss:
+                        best_loss = vloss
                         early_stopping_counter = 0
                     else:
                         early_stopping_counter += 1
+                    
+                    # update the progressbar
+                    t.set_postfix(loss = vloss, stuck = early_stopping_counter)
+                    
+                    progress_file.write(f"{i}\t{learning_rates[i]:e}\t{batch_sizes[i]:d}\t{epoch:d}\t{vloss:f}\t{best_loss:f}\n")
+                    progress_file.flush()
+
                     if early_stopping_counter >= patience_values[i]:
                         self.update_emulator_parameters()
                         self.save(filename_saved_model)
-                        print('Validation loss = ' + str(best_loss))
-                        print('Model saved.')
                         break
+
                 self.update_emulator_parameters()
                 self.save(filename_saved_model)
-                print('Reached max number of epochs. Validation loss = ' + str(best_loss))
+                if early_stopping_counter >= patience_values[i]:
+                    print(f'Model reached early stopping condition. Validation loss = {best_loss:f}')
+                else:
+                    print(f'Reached max number of epochs. Validation loss = {best_loss:f}')
                 print('Model saved.')
+        
+        progress_file.close()

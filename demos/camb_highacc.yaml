@@ -1,0 +1,138 @@
+network_name: camb_highacc
+path: cosmopower/trained_models/camb_highacc/
+
+emulated_code:
+  name: camb
+  version: "1.5.0"
+  extra_args:
+    lens_potential_accuracy: 8
+    kmax: 10.0
+    k_per_logint: 130
+    lens_margin: 2050
+    AccuracyBoost: 1.0
+    lAccuracyBoost: 1.2
+    lSampleBoost: 1.0
+    DoLateRadTruncation: false
+    min_l_logl_sampling: 6000
+
+samples:
+  Ntraining: 150000
+
+  parameters:
+    ombh2:
+      range: [0.01,0.05]
+    omch2:
+      range: [0.05,0.50]
+    logA:
+      range: [2.0,4.0]
+      drop: True
+    As:
+      derived: True
+      value: "lambda logA: 1.e-10 * np.exp(logA)"
+    tau:
+      range: [0.02, 0.12]
+    ns:
+      range: [0.8, 1.2]
+    h:
+      range: [0.4,1.0]
+      drop: True
+    H0:
+      derived: True
+      value: "lambda h: h * 100.0"
+
+networks:
+  - quantity: "Cl/tt"
+    ell_factor: True
+    inputs: [ ombh2, omch2, logA, tau, ns, h ]
+    type: NN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: "Cl/te"
+    ell_factor: True
+    inputs: [ ombh2, omch2, logA, tau, ns, h ]
+    type: PCAplusNN
+    log: False
+    modes:
+      label: l
+      range: [2,10000]
+    p_traits:
+      n_pcas: 512
+      n_batches: 10
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: "Cl/ee"
+    ell_factor: True
+    inputs: [ ombh2, omch2, logA, tau, ns, h ]
+    type: NN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]
+  
+  - quantity: "Cl/bb"
+    ell_factor: True
+    inputs: [ ombh2, omch2, logA, tau, ns, h ]
+    type: NN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]
+  
+  - quantity: "Cl/pp"
+    ell_factor: True
+    inputs: [ ombh2, omch2, logA, ns, h ]
+    type: PCAplusNN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    p_traits:
+      n_pcas: 64
+      n_batches: 10
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]

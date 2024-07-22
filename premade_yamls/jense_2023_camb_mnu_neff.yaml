@@ -1,0 +1,182 @@
+network_name: jense_2023_camb_mnu_neff
+path: jense_2023_camb_mnu_neff
+
+emulated_code:
+  name: camb
+  version: "1.5.0"
+  inputs: [ ombh2, omch2, As, ns, H0, tau, mnu, nnu ]
+  extra_args:
+    lens_potential_accuracy: 8
+    kmax: 10.0
+    k_per_logint: 130
+    lens_margin: 2050
+    AccuracyBoost: 1.0
+    lAccuracyBoost: 1.2
+    lSampleBoost: 1.0
+    DoLateRadTruncation: false
+    min_l_logl_sampling: 6000
+    recombination_model: CosmoRec
+
+samples:
+  Ntraining: 120000
+
+  parameters:
+    ombh2: [0.015,0.030]
+    omch2: [0.09,0.15]
+    logA: [2.5,3.5]
+    tau: [0.02, 0.20]
+    ns: [0.85, 1.05]
+    h: [0.4,1.0]
+    H0: "lambda h: h * 100.0"
+    As: "lambda logA: 1.e-10 * np.exp(logA)"
+    # derived parameters
+    thetastar:
+    sigma8:
+    YHe:
+    zrei:
+    taurend:
+    zstar:
+    rstar:
+    zdrag:
+    N_eff:
+    mnu: [0.0,0.5]
+    nnu: [1.0,5.0]
+
+networks:
+  - quantity: "derived"
+    type: NN
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000
+
+  - quantity: "Cl/tt"
+    type: NN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: "Cl/te"
+    type: PCAplusNN
+    modes:
+      label: l
+      range: [2,10000]
+    p_traits:
+      n_pcas: 512
+      n_batches: 10
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000
+
+  - quantity: "Cl/ee"
+    type: NN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000
+  
+  - quantity: "Cl/bb"
+    type: NN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000
+  
+  - quantity: "Cl/pp"
+    inputs: [ ombh2, omch2, logA, ns, h, mnu, nnu ]
+    type: PCAplusNN
+    log: True
+    modes:
+      label: l
+      range: [2,10000]
+    p_traits:
+      n_pcas: 64
+      n_batches: 10
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000
+  
+  - quantity: "Hubble"
+    type: NN
+    log: True
+    modes:
+      label: z
+      range: [0,20]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000
+
+  - quantity: "sigma8"
+    type: NN
+    log: True
+    modes:
+      label: z
+      range: [0,20]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000
+
+  - quantity: "angular_diameter_distance"
+    type: NN
+    log: True
+    modes:
+      label: z
+      range: [0,20]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      patience_values: 100
+      max_epochs: 1000

@@ -21,10 +21,6 @@ class cosmopower_PCA():
             multipoles or k-values in the (log)-spectra
         n_pcas (int):
             number of PCA components
-        parameters_filenames (list [str]):
-            list of .npz filenames for parameters
-        features_filenames (list [str]):
-            list of .npz filenames for (log)-spectra
         verbose (bool):
             whether to print messages at intermediate steps or not
     """
@@ -33,8 +29,7 @@ class cosmopower_PCA():
                  parameters,
                  modes,
                  n_pcas,
-                 parameters_filenames,
-                 features_filenames,
+                 n_batches,
                  verbose=False,
                  ):
         r"""
@@ -46,15 +41,14 @@ class cosmopower_PCA():
         self.modes = modes
         self.n_modes = len(self.modes)
         self.n_pcas = n_pcas
-        self.parameters_filenames = parameters_filenames
-        self.features_filenames = features_filenames
-        self.n_batches = len(self.parameters_filenames)
+        self.n_batches = n_batches
 
         # PCA object
-        self.PCA = IncrementalPCA(n_components=self.n_pcas)
+        self.PCA = IncrementalPCA(n_components = self.n_pcas)
+        self.trained = False
 
         # verbose
-        self.verbose= verbose
+        self.verbose = verbose
 
         # print initialization info, if verbose
         if self.verbose:
@@ -83,7 +77,7 @@ class cosmopower_PCA():
 
 
     # compute mean and std for (log)-spectra and parameters
-    def standardise_features_and_parameters(self):
+    def standardise_features_and_parameters(self, features, parameters):
         r"""
         Compute mean and std for (log)-spectra and parameters
         """
@@ -95,10 +89,6 @@ class cosmopower_PCA():
 
         # loop over training data files, accumulate means and stds
         for i in range(self.n_batches):
-
-            features = np.load(self.features_filenames[i] + ".npz")['features']
-            parameters = self.dict_to_ordered_arr_np(np.load(self.parameters_filenames[i] + ".npz"))
-
             # accumulate
             self.features_mean += np.mean(features, axis=0)/self.n_batches
             self.features_std += np.std(features, axis=0)/self.n_batches
@@ -107,7 +97,7 @@ class cosmopower_PCA():
 
 
     # train PCA incrementally
-    def train_pca(self):
+    def train_pca(self, features):
         r"""
         Train PCA incrementally
         """
@@ -115,18 +105,16 @@ class cosmopower_PCA():
         with trange(self.n_batches) as t:
             for i in t:
                 # load (log)-spectra and mean+std
-                features = np.load(self.features_filenames[i] + ".npz")['features']
                 normalised_features = (features - self.features_mean)/self.features_std
 
                 # partial PCA fit
                 self.PCA.partial_fit(normalised_features)
 
-        # set the PCA transform matrix
-        self.pca_transform_matrix = self.PCA.components_
-
 
     # transform the training data set to PCA basis
     def transform_and_stack_training_data(self, 
+                                          training_features,
+                                          training_parameters,
                                           filename = './tmp', 
                                           retain = True,
                                           ):
@@ -145,10 +133,7 @@ class cosmopower_PCA():
         self.train_pca()
 
         # transform the (log)-spectra to PCA basis
-        training_pca = np.concatenate([self.PCA.transform((np.load(self.features_filenames[i] + ".npz")['features'] - self.features_mean)/self.features_std) for i in range(self.n_batches)])
-
-        # stack the input parameters
-        training_parameters = np.concatenate([self.dict_to_ordered_arr_np(np.load(self.parameters_filenames[i] + '.npz')) for i in range(self.n_batches)])
+        training_pca = np.concatenate([self.PCA.transform((training_features - self.features_mean)/self.features_std) for i in range(self.n_batches)])
 
         # mean and std of PCA basis
         self.pca_mean = np.mean(training_pca, axis=0)
@@ -196,3 +181,11 @@ class cosmopower_PCA():
 
         # return PCA coefficients and (log)-spectra in basis
         return features_pca, features_in_basis
+
+    @property
+    def pca_transform_matrix(self) -> np.ndarray:
+        return self.PCA.components_
+
+    @property
+    def is_compressed(self) -> bool:
+        return self.trained

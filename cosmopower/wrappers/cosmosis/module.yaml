@@ -1,0 +1,114 @@
+name: cosmopower
+version: 1.0
+purpose: "Compute perturbations with a CosmoPower emulator"
+url: "https://alessiospuriomancini.github.io/cosmopower/"
+interface: cosmopower_interface.py
+attribution: [Ian Harrison]
+rules:
+    "Please abide by the conditions in the CosmoPower license when using this module"
+cite:
+    - "https://doi.org/10.1093/mnras/stac064"
+
+assumptions:
+    - "Working installation of CosmoPower python module v2.0 or higher."
+
+explanation: |
+    "This module provides access to cosmological quantities (currently only CMB Cls)
+    which are returned from a neural network emulation of a Boltzmann code by the
+    CosmoPower python package.
+
+    The neural network should include a CosmoPower packaging .yaml file containing
+    the details of the valid parameter and observable ranges.
+
+    The network must have been trained on the input parameters sampled, or valid
+    renames for the network training cosmological parameters supplied via the extra_renames 
+    parameter. Note that the list of inputs supplied below is for the default camb_highacc 
+    network supplied with the CosmoPower package.
+    "
+
+# List of parameters that can go in the params.ini file in the section for this module    
+params:
+    cmb:
+        meaning: Whether to compute CMB spectra
+        type: bool
+        default: True
+    lmax:
+        meaning: Truncation maximum ell for the required spectra
+        type: int
+        default: -999
+    units:
+        meaning: The required units of the spectra. One of "FIRASmuK2", "FIRASK2", "muK2", "K2", "1".
+        type: str
+        default: "FIRASmuK2"
+    extra_renames:
+        meaning: "Extra cosmological parameter renames which map between names of parameters which cosmosis 
+        understands and the names of the parameters in the network. These should be supplied as a string 
+        formatted as a python dictionary e.g. {'cosmosis_parameter_name' : 'network_parm_name'}"
+        type: str
+        default: "{}"
+    # matter_power_lin:
+    #     meaning: Whether to compute linear matter power spectra
+    #     type: bool
+    #     default: False
+    # matter_power_nl:
+    #     meaning: Whether to compute non-linear matter power spectra
+    #     type: bool
+    #     default: False
+    # debug:
+    #     meaning: Whether to give a fuller traceback on errors
+    #     type: bool
+    #     default: False
+
+#Inputs for a given choice of a parameter, from the values.ini or from other modules
+#If no such choices, just do one of these omitting mode=something part:
+inputs:
+    cosmological_parameters:
+        ombh2:
+            meaning: Physical baryon density
+            type: real
+            default:
+        omch2:
+            meaning: Physical cold dark matter density
+            type: real
+            default:
+        n_s:
+            meaning: Primordial scalar spectral index
+            type: real
+            default:
+        log1e10as:
+            meaning: Primordial scalar spectral amplitude
+            type: real
+            default:
+        hubble:
+            meaning: Hubble parameter in km/s/Mpc
+            type: real
+            default:
+        h0:
+            meaning: Hubble parameter in km/s/Mpc/100 (searched for if hubble not
+                found)
+            type: real
+            default:
+        tau:
+            meaning: Optical depth to reionization (use_optical_depth=T)
+            type: real
+            default:
+outputs:
+    cmb_cl:
+        ell:
+            meaning: Angular frequencies.
+            type: int 1d
+        tt:
+            meaning: ell * (ell+1) C_ell^TT / 2 pi in mu K^2.
+            type: real 1d
+        ee:
+            meaning: ell * (ell+1) C_ell^EE / 2 pi in mu K^2.
+            type: real 1d
+        bb:
+            meaning: ell * (ell+1) C_ell^BB / 2 pi in mu K^2.
+            type: real 1d
+        te:
+            meaning: ell * (ell+1) C_ell^TE / 2 pi in mu K^2.
+            type: real 1d
+        pp:
+            meaning: Phi-Phi lensing spectrum; ell * (ell+1) C_ell^PhiPhi  / 2pi.
+            type: real 1d

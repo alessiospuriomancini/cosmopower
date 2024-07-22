@@ -1,0 +1,175 @@
+# Example Cosmopower v2 packaging (Jense et al, 2023, in preparation).
+#   Designed by Hidde Jense and Ian Harrison, for example usage.
+#   Based on the original Cosmopower emulators trained for Spurio Mancini et al, 2021.
+# As of 12/06/2023.
+# 
+# A simple alphanumeric name for this network.
+# The networks are normally sotred under "path/filename", where
+# filename is either a specified file name, or (default) the
+# network name + the computed quantity (e.g. "cosmopower/trained_models/CP_paper_Cl_tt.pkl"
+# for a ClTT network).
+network_name: CP_paper
+# Where the network is (locally) stored.
+path: cosmopower/trained_models
+
+# The original networks were stored as pickle (.pkl) files
+allow_pickle: True
+
+emulated_code:
+  # Details about the code being emulated (in this case, camb)
+  name: camb
+  # The version of camb used to generate the model with.
+  version: "1.4.0"
+  extra_args:
+    # Any extra arguments passed on to the emulated code (e.g. CAMB accuracy parameters).
+    # (the specifics can be handled by the Boltzmann code handler).
+    lens_potential_accuracy: 1
+    kmax: 100.0
+
+samples:
+  # The number of samples for training.
+  Ntraining: 100000
+
+  # The training parameters used for the networks.
+  parameters:
+    ombh2:
+      range: [0.001,0.04]
+    omch2:
+      range: [0.002,0.50]
+    logA:
+      # We want to use logA as an input to our networks,
+      # but use As as an input to camb. The "drop: True" flag
+      # marks this parameter as "do not give to boltzmann code"
+      range: [2.0,5.0]
+      drop: True
+    As:
+      # We want to use logA as an input to our networks,
+      # but use As as an input to camb. The "derived: True" flag
+      # marks this parameter as "compute this value from another parameter"
+      derived: True
+      value: "lambda logA: 1.e-10 * np.exp(logA)"
+    tau:
+      range: [0.01, 0.10]
+    ns:
+      range: [0.8, 1.2]
+    h:
+      range: [0.5,1.0]
+      drop: True
+    H0:
+      derived: True
+      value: "lambda h: h * 100.0"
+    # For P(k,z), an extra input parameter z was used, e.g.
+    # z:
+    #   range: [0.0, 5.0]
+    
+    # If you want, parameter can be spaced in logspace by adding
+    # either a "derived" flag or adding a "spacing: log" tag.
+
+# Information on the trained networks
+networks:
+  # a ClTT Neural Network emulator trained on log(Cl) on 2 <= l <= 2508.
+  # Note: we have not fully decided on the correct naming scheme for the "quantity" value.
+  #       Should we change this in the future, this would be a trivial thing to change, however.
+  - quantity: "Cl/tt" # ClTT
+    filename: "CMB/cmb_TT_NN"
+    # List which parameters are used as inputs for this network.
+    inputs: [ ombh2, omch2, logA, tau, ns, h ]
+    # Recognized types: NN or PCAplusNN (if more get created in the future, those could be added too).
+    type: NN
+    # Train this network on log(Cl) rather than raw Cl.
+    log: True
+    ell_factor: false # i.e. train this on log(Cl), not on log(l (l+1) Cl / 2 pi)
+    modes:
+      # The label is purely cosmetic for now.
+      label: l
+      range: [2,2508]
+      # you can specify the number of steps by adding a "steps: N"
+      # tag.
+      # similar to parameter ranges, modes can be put in log space
+      # by adding a "spacing: log" tag (this requires specifying the number
+      # of steps as well).
+      # if the number of steps is not specified, it assumes linear spacing with unit
+      # spacing (i.e. doing "l = np.arange(lmin, lmax+1)".
+    n_traits:
+      # Cosmopower NN traits.
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      # cosmopower training parameters.
+      # All these parameters are passed on as **kwargs to the network.train() method.
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1024, 1024, 1024, 1024, 1024 ]
+      gradient_accumulation_steps: [ 1.0, 1.0, 1.0, 1.0, 1.0 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: "Cl/te" # ClTE
+    filename: "CMB/cmb_TE_PCAplusNN"
+    inputs: [ ombh2, omch2, logA, tau, ns, h ]
+    type: PCAplusNN
+    log: False # the zero-crossing of TE makes it impossible to train on log(Cl).
+    ell_factor: false
+    modes:
+      label: l
+      range: [2,2508]
+    p_traits:
+      # Cosmpower PCA traits.
+      n_pcas: 512
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1024, 1024, 1024, 1024, 1024 ]
+      gradient_accumulation_steps: [ 1.0, 1.0, 1.0, 1.0, 1.0 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: "Cl/ee" # (ClEE is similar to ClTT).
+    filename: "CMB/cmb_EE_NN"
+    inputs: [ ombh2, omch2, logA, tau, ns, h ]
+    type: NN
+    log: True
+    ell_factor: false
+    modes:
+      label: l
+      range: [2,2508]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1024, 1024, 1024, 1024, 1024 ]
+      gradient_accumulation_steps: [ 1.0, 1.0, 1.0, 1.0, 1.0 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: "Cl/pp" # Clpp (phiphi), lensing spectrum.
+    filename: "CMB/cmb_PP_PCAplusNN"
+    # note we do not use tau as an input for Clpp
+    inputs: [ ombh2, omch2, logA, ns, h ]
+    type: PCAplusNN
+    log: True
+    ell_factor: false
+    modes:
+      label: l
+      range: [2,2508]
+    p_traits:
+      n_pcas: 64
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1024, 1024, 1024, 1024, 1024 ]
+      gradient_accumulation_steps: [ 1.0, 1.0, 1.0, 1.0, 1.0 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+  
+  # Other quantities that might be of interest:
+  # Cl/bb
+  # Cl_unlensed/xy (xy = tt, te, ee, bb, pp) for unlensed spectra
+  # Pk/lin (linear matter power spectrum)
+  # Pk/nonlin (non-linear matter power spectrum) or Pk/boost (= Pk_nonlin / Pk_lin)
+  # Hubble (H(z) emulator)
+  # D_A (angular diameter distance D_A(z) emulator)

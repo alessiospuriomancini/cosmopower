@@ -1,4 +1,3 @@
-tensorflow>2.0
 scikit-learn
 tqdm
 gdown
@@ -9,3 +8,4 @@ matplotlib
 pytest
 pyDOE
 tensorflow_probability
+h5py

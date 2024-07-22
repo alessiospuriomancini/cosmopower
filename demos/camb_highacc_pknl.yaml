@@ -1,0 +1,78 @@
+network_name: camb_highacc
+path: cosmopower/trained_models/camb_highacc_pknl/
+
+emulated_code:
+  name: camb
+  version: "1.5.0"
+  inputs: [ z, ombh2, omch2, As, tau, ns, H0, NonLinearModel.HMCode_A_baryon, NonLinearModel.HMCode_eta_baryon, NonLinearModel.HMCode_logT_AGN ]
+  extra_args:
+    lmax: 6000
+    lens_potential_accuracy: 8
+    kmax: 50.0
+    k_per_logint: 130
+    lens_margin: 2050
+    AccuracyBoost: 1.0
+    lAccuracyBoost: 1.2
+    lSampleBoost: 1.0
+    DoLateRadTruncation: false
+    min_l_logl_sampling: 6000
+    NonLinearModel.Min_kh_nonlinear: 5.e-5
+    NonLinearModel.halofit_version: 'mead2020'
+
+samples:
+  Ntraining: 150000
+
+  parameters:
+    z: [0.0, 5.0]
+    ombh2: [0.01,0.05]
+    omch2: [0.05,0.50]
+    logA: [2.0,4.0]
+    As: "lambda logA: 1.e-10 * np.exp(logA)"
+    tau: [0.02, 0.12]
+    ns: [0.8, 1.2]
+    h: [0.4,1.0]
+    H0: "lambda h: h * 100.0"
+    NonLinearModel.HMCode_A_baryon: [2.0, 4.0] 
+    NonLinearModel.HMCode_eta_baryon: [0.5, 1.0]
+    NonLinearModel.HMCode_logT_AGN: [7.3, 8.3]
+
+networks:
+  - quantity: "Pk/nonlin"
+    ell_factor: False
+    inputs: [ ombh2, omch2, logA, tau, ns, h, z, NonLinearModel.HMCode_A_baryon,  NonLinearModel.HMCode_eta_baryon, NonLinearModel.HMCode_logT_AGN]
+    type: NN
+    log: True
+    modes:
+      label: k
+      range: [5.e-5,50]
+      spacing: log
+      steps: 128
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: "Pk/nlboost"
+    ell_factor: False
+    inputs: [ ombh2, omch2, logA, tau, ns, h, z, NonLinearModel.HMCode_A_baryon,  NonLinearModel.HMCode_eta_baryon, NonLinearModel.HMCode_logT_AGN]
+    type: NN
+    log: False
+    modes:
+      label: k
+      range: [5.e-5,50]
+      spacing: log
+      steps: 128
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.1
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6, 1.e-7 ]
+      batch_sizes: [ 1000, 2000, 5000, 10000, 20000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000, 1000 ]
