@@ -12,25 +12,25 @@ class Dataset:
     Using a dataset allows easier access to the data compared to opening the
     raw HDF5 file yourself, while also providing some quick functions to
     ensure proper formatting of the file for the user.
-    
+
     If you want to read/write your own CosmoPower training data using a
     Dataset class, the best way to do so is as::
-    
+
         dataset = Dataset(parser, quantity, filename)
         with dataset:
             for spectrum in generator:
                 dataset.write_data(index, parameters, spectrum)
-    
+
     Where the ``with``-statement ensures the dataset is properly opened,
     resized, closed, and cleaned up. You can also manually open and close
     a Dataset::
-    
+
         dataset = Dataset(parser, quantity, filename)
         dataset.open()
         for spectrum in generator:
             dataset.write_data(index, parameters, spectrum)
         dataset.close()
-    
+
     Which has an equivalent behaviour. Note however that the
     ``dataset.close()`` function can have some significant overhead. It is
     recommended not to open and close your dataset in a loop, but instead
@@ -39,7 +39,7 @@ class Dataset:
     def __init__(self, parser: YAMLParser,
                  quantity: str, filename: str) -> None:
         """Create a new dataset wrapper.
-        
+
         :param parser: The YAMLParser associated with this dataset.
         :param quantity: The quantity that we are saving in this dataset.
         :param filename: The filename (excluding path) for this dataset."""
@@ -118,7 +118,7 @@ class Dataset:
            :param spectra: the output spectra for the network.
            :param overwrite: allow overwriting existing data. If false, raise
                              an exception when conflicting indices are found.
-           
+
            :return: the number of indices written to the file."""
         self.check_open()
 
@@ -154,7 +154,7 @@ class Dataset:
     @property
     def indices(self) -> np.ndarray:
         """All valid (non-negative) indices in this dataset.
-        
+
         :return: All valid (non-negative) indices in this dataset."""
         self.check_open()
         indices = self.file["data"]["indices"][:]
@@ -162,7 +162,7 @@ class Dataset:
 
     def read_parameters(self, indices: Union[int, np.ndarray]) -> dict:
         """Read the parameters with given indices.
-        
+
         :param indices: The index/indices you want read from.
         :return: The parameters associated with the requested indices."""
         self.check_open()
@@ -184,7 +184,7 @@ class Dataset:
 
     def read_spectra(self, indices: Union[int, np.ndarray]) -> np.ndarray:
         """Read the spectra with given indices.
-        
+
         :param indices: The index/indices you want read from.
         :return: The spectra associated with the requested indices."""
         self.check_open()

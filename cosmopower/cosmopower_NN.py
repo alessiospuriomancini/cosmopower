@@ -34,7 +34,7 @@ class cosmopower_NN(tf.keras.Model):
         restore (bool):
             whether to restore a previously trained model or not
         restore_filename (str):
-            filename tag (without suffix) for restoring trained model from file 
+            filename tag (without suffix) for restoring trained model from file
             (this will be a pickle file with all of the model attributes and weights)
         trainable (bool):
             training layers
@@ -46,15 +46,15 @@ class cosmopower_NN(tf.keras.Model):
             whether to permit the (legacy) loading of .pkl files.
     """
 
-    def __init__(self, 
-                 parameters=None, 
-                 modes=None, 
-                 parameters_mean=None, 
-                 parameters_std=None, 
-                 features_mean=None, 
-                 features_std=None, 
+    def __init__(self,
+                 parameters=None,
+                 modes=None,
+                 parameters_mean=None,
+                 parameters_std=None,
+                 features_mean=None,
+                 features_std=None,
                  n_hidden=[512,512,512],
-                 restore_filename=None, 
+                 restore_filename=None,
                  trainable=True,
                  optimizer=None,
                  verbose=False,
@@ -103,7 +103,7 @@ class cosmopower_NN(tf.keras.Model):
         self.W = []
         self.b = []
         self.alphas = []
-        self.betas = [] 
+        self.betas = []
         for i in range(self.n_layers):
             self.W.append(tf.Variable(tf.random.normal([self.architecture[i], self.architecture[i+1]], 0., 1e-3), name="W_" + str(i), trainable=trainable))
             self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]), name = "b_" + str(i), trainable=trainable))
@@ -137,9 +137,9 @@ class cosmopower_NN(tf.keras.Model):
 # ========== TENSORFLOW implementation ===============
 
     # non-linear activation function
-    def activation(self, 
-                   x, 
-                   alpha, 
+    def activation(self,
+                   x,
+                   alpha,
                    beta):
         r"""
         Non-linear activation function
@@ -161,7 +161,7 @@ class cosmopower_NN(tf.keras.Model):
 
     # tensor predictions
     @tf.function
-    def predictions_tf(self, 
+    def predictions_tf(self,
                        parameters_tensor):
         r"""
         Prediction given tensor of input parameters,
@@ -196,7 +196,7 @@ class cosmopower_NN(tf.keras.Model):
 
     # tensor 10.**predictions
     @tf.function
-    def ten_to_predictions_tf(self, 
+    def ten_to_predictions_tf(self,
                            parameters_tensor):
         r"""
         10^predictions given tensor of input parameters,
@@ -249,22 +249,22 @@ class cosmopower_NN(tf.keras.Model):
         attributes["n_hidden"] = self.n_hidden
         attributes["n_parameters"] = self.n_parameters
         attributes["n_modes"] = self.n_modes
-        
+
         attributes["parameters"] = self.parameters
         attributes["modes"] = self.modes
-        
+
         attributes["parameters_mean"] = self.parameters_mean.numpy()
         attributes["parameters_std"] = self.parameters_std.numpy()
         attributes["features_mean"] = self.features_mean.numpy()
         attributes["features_std"] = self.features_std.numpy()
-        
+
         for i in range(self.n_layers):
             attributes[f"W_{i}"] = self.W[i].numpy()
             attributes[f"b_{i}"] = self.b[i].numpy()
         for i in range(self.n_layers-1):
             attributes[f"alphas_{i}"] = self.alphas[i].numpy()
             attributes[f"betas_{i}"] = self.betas[i].numpy()
-        
+
         with open(filename + ".npz", "wb") as fp:
             np.savez_compressed(fp, **attributes)
 
@@ -322,9 +322,9 @@ class cosmopower_NN(tf.keras.Model):
     def restore_pickle(self, filename: str) -> None:
         r"""
         Legacy function for restoring model from pickle (.pkl) file.
-        
+
         This function might be deprecated in the future, due to the way pickle files are read.
-        
+
         Parameters:
         :param filename: filename (with suffix) where model was saved.
         """
@@ -360,7 +360,7 @@ class cosmopower_NN(tf.keras.Model):
 # ========== NUMPY implementation ===============
 
     # auxiliary function to sort input parameters
-    def dict_to_ordered_arr_np(self, 
+    def dict_to_ordered_arr_np(self,
                                input_dict,
                                ):
         r"""
@@ -375,7 +375,7 @@ class cosmopower_NN(tf.keras.Model):
                 parameters sorted according to desired order
         """
         input_dict = { k : np.atleast_1d(input_dict[k]) for k in input_dict }
-        
+
         if self.parameters is not None:
             return np.stack([input_dict[k] for k in self.parameters], axis=1)
         else:
@@ -383,10 +383,10 @@ class cosmopower_NN(tf.keras.Model):
 
 
     # forward prediction given input parameters implemented in Numpy
-    def forward_pass_np(self, 
+    def forward_pass_np(self,
                         parameters_arr):
         r"""
-        Forward pass through the network to predict the output, 
+        Forward pass through the network to predict the output,
         fully implemented in Numpy
 
         Parameters:
@@ -416,7 +416,7 @@ class cosmopower_NN(tf.keras.Model):
 
 
     # Numpy array predictions
-    def predictions_np(self, 
+    def predictions_np(self,
                        parameters_dict,
                        ):
         r"""
@@ -480,7 +480,7 @@ class cosmopower_NN(tf.keras.Model):
 
 
     @tf.function
-    def compute_loss_and_gradients(self, 
+    def compute_loss_and_gradients(self,
                                    training_parameters,
                                    training_features):
         r"""
@@ -512,7 +512,7 @@ class cosmopower_NN(tf.keras.Model):
         return loss, gradients
 
 
-    def training_step(self, 
+    def training_step(self,
                       training_parameters,
                       training_features
                       ):
@@ -538,9 +538,9 @@ class cosmopower_NN(tf.keras.Model):
         return loss
 
 
-    def training_step_with_accumulated_gradients(self, 
-                                                 training_parameters, 
-                                                 training_features, 
+    def training_step_with_accumulated_gradients(self,
+                                                 training_parameters,
+                                                 training_features,
                                                  accumulation_steps=10):
         r"""
         Minimize loss, breaking calculation into accumulated gradients
@@ -622,7 +622,7 @@ class cosmopower_NN(tf.keras.Model):
         if type(gradient_accumulation_steps) != list: gradient_accumulation_steps = n_iter * [gradient_accumulation_steps]
         if type(patience_values) != list: patience_values = n_iter * [patience_values]
         if type(max_epochs) != list: max_epochs = n_iter * [max_epochs]
-        
+
         # check correct number of steps
         assert len(learning_rates)==len(batch_sizes)\
                ==len(gradient_accumulation_steps)==len(patience_values)==len(max_epochs), \
@@ -643,7 +643,7 @@ class cosmopower_NN(tf.keras.Model):
         #training_parameters = self.dict_to_ordered_arr_np(training_parameters)
         training_parameters = None
         training_features = None
-        
+
         progress_file = open(filename_saved_model + ".progress", "w")
         progress_file.write("# Learning step\tLearning rate\tBatch size\tEpoch\tValidation loss\tBest loss\n")
         progress_file.flush()
@@ -652,22 +652,22 @@ class cosmopower_NN(tf.keras.Model):
         self.parameters_std = None
         self.features_mean = None
         self.features_std = None
-        
+
         for dataset in training_data:
             with dataset:
                 parameters, features = dataset.read_data()
-            
+
             m = ~np.logical_or(np.any(np.isnan(parameters), axis = 1), np.any(np.isnan(features), axis = 1))
             parameters = parameters[m,:]
             features = features[m,:]
-            
+
             if training_parameters is None:
                 training_parameters = parameters
                 training_features = features
             else:
                 training_parameters = np.concatenate((training_parameters, parameters))
                 training_features = np.concatenate((training_features, features))
-        
+
         self.parameters_mean = np.nanmean(training_parameters, axis = 0)
         self.parameters_std = np.nanstd(training_parameters, axis = 0)
         self.features_mean = np.nanmean(training_features, axis = 0)
@@ -685,10 +685,10 @@ class cosmopower_NN(tf.keras.Model):
         n_samples = training_parameters.shape[0]
         n_validation = int(n_samples * validation_split)
         n_training = int(n_samples) - n_validation
-        
+
         training_parameters = tf.convert_to_tensor(training_parameters, dtype = dtype)
         training_features = tf.convert_to_tensor(training_features, dtype = dtype)
-        
+
         # train using cooling/heating schedule for lr/batch-size
         for i in range(len(learning_rates)):
 
@@ -699,7 +699,7 @@ class cosmopower_NN(tf.keras.Model):
 
             # Split the data into a training and validation dataset, and batch them.
             split = tf.random.shuffle([True] * n_training + [False] * n_validation)
-            
+
             training_data = tf.data.Dataset.from_tensor_slices((training_parameters[split], training_features[split])).shuffle(n_training).batch(batch_sizes[i])
             validation_parameters = training_parameters[~split]
             validation_features = training_features[~split]
@@ -731,10 +731,10 @@ class cosmopower_NN(tf.keras.Model):
                         early_stopping_counter = 0
                     else:
                         early_stopping_counter += 1
-                    
+
                     # update the progressbar
                     t.set_postfix(loss = vloss, stuck = early_stopping_counter)
-                    
+
                     progress_file.write(f"{i}\t{learning_rates[i]:e}\t{batch_sizes[i]:d}\t{epoch:d}\t{vloss:f}\t{best_loss:f}\n")
                     progress_file.flush()
 
@@ -750,5 +750,5 @@ class cosmopower_NN(tf.keras.Model):
                 else:
                     print(f'Reached max number of epochs. Validation loss = {best_loss:f}')
                 print('Model saved.')
-        
+
         progress_file.close()

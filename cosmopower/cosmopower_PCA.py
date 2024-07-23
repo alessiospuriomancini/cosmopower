@@ -112,10 +112,10 @@ class cosmopower_PCA():
 
 
     # transform the training data set to PCA basis
-    def transform_and_stack_training_data(self, 
+    def transform_and_stack_training_data(self,
                                           training_features,
                                           training_parameters,
-                                          filename = './tmp', 
+                                          filename = './tmp',
                                           retain = True,
                                           ):
         r"""
