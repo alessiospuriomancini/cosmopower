@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def _cmb_unit_factor(units, T_cmb):
     units_factors = {"1": 1,
                      "muK2": T_cmb * 1.e6,
@@ -10,11 +11,12 @@ def _cmb_unit_factor(units, T_cmb):
     try:
         return units_factors[units]
     except KeyError:
-        raise NotImplemented("Units '%s' not recognized. Use one of %s.",
-                              units, list(units_factors))
+        raise NotImplementedError("Units '%s' not recognized. Use one of %s.",
+                                  units, list(units_factors))
 
-def cmb_unit_factor(spectra: str, units: str="FIRASmuK2",
-                    Tcmb: float=2.7255) -> float:
+
+def cmb_unit_factor(spectra: str, units: str = "FIRASmuK2",
+                    Tcmb: float = 2.7255) -> float:
     """
     Calculate the CMB prefactor for going from dimensionless power spectra to
     CMB units.
@@ -38,6 +40,7 @@ def cmb_unit_factor(spectra: str, units: str="FIRASmuK2",
         res *= 1. / np.sqrt(2.0 * np.pi)
 
     return res
+
 
 def ell_factor(ls: np.ndarray, spectra: str) -> np.ndarray:
     """
@@ -69,7 +72,8 @@ def ell_factor(ls: np.ndarray, spectra: str) -> np.ndarray:
 
     return ellfac
 
-def get_noise_curves_CVL(parser, spectra, fsky = 1.0):
+
+def get_noise_curves_CVL(parser, spectra: dict, fsky: float = 1.0) -> dict:
     results = {}
 
     # TT spectra.
@@ -108,7 +112,8 @@ def get_noise_curves_CVL(parser, spectra, fsky = 1.0):
 
     return results
 
-def get_noise_curves_SO(parser, spectra, T_cmb = 2.7255):
+
+def get_noise_curves_SO(parser, spectra: dict, T_cmb: float = 2.7255) -> dict:
     results = {}
 
     TT_ells, TT_Nell = np.loadtxt("test/SO_LAT_Nell_T_atmv1_goal_fsky0p4_\
@@ -119,7 +124,7 @@ def get_noise_curves_SO(parser, spectra, T_cmb = 2.7255):
                                    ILC_CMB_B.txt", usecols=(0, 1), unpack=True)
     PP_ells, PP_Nell = np.loadtxt("test/nlkk_v3_1_0_deproj0_SENS1_fsky0p4_it_\
                                    lT30-3000_lP30-5000.dat", usecols=(0, 7),
-                                   unpack=True)
+                                  unpack=True)
 
     TT_Nell /= (T_cmb * 1e6) ** 2.0
     EE_Nell /= (T_cmb * 1e6) ** 2.0
