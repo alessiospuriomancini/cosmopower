@@ -38,7 +38,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             whether to permit the (legacy) loading of .pkl files.
     """
 
-    def __init__(self, cp_pca: object = None, n_hidden: list = [512,512,512],
+    def __init__(self, cp_pca: object = None, n_hidden: list = [512, 512, 512],
                  restore_filename: Optional[str] = None,
                  trainable: bool = True, optimizer: tf.keras.Optimizer = None,
                  verbose: bool = False, allow_pickle: bool = False) -> None:
@@ -50,7 +50,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 
         # restore
         if restore_filename is not None:
-            self.restore(restore_filename, allow_pickle = allow_pickle)
+            self.restore(restore_filename, allow_pickle=allow_pickle)
             self.cp_pca = None
 
         # else set variables from input arguments
@@ -131,18 +131,18 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 ], 0., np.sqrt(2./self.n_parameters)), name="W_" + str(i),
                 trainable=trainable))
             self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]),
-                name = "b_" + str(i),
-                trainable=trainable))
+                                      name="b_" + str(i),
+                                      trainable=trainable))
         for i in range(self.n_layers-1):
             self.alphas.append(tf.Variable(
                 tf.random.normal([self.architecture[i+1]]),
-                name = "alphas_" + str(i), trainable=trainable))
+                name="alphas_" + str(i), trainable=trainable))
             self.betas.append(tf.Variable(
                 tf.random.normal([self.architecture[i+1]]),
-                name = "betas_" + str(i), trainable=trainable))
+                name="betas_" + str(i), trainable=trainable))
 
         # restore weights if restoring
-        if not restore_filename is None:
+        if restore_filename is not None:
             for i in range(self.n_layers):
                 self.W[i].assign(self.W_[i])
                 self.b[i].assign(self.b_[i])
@@ -162,15 +162,8 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                             f"with {list(self.n_hidden)} nodes, respectively."
             print(multiline_str)
 
-
-# ========== TENSORFLOW implementation ===============
-
-    # non-linear activation function
-    def activation(self,
-                   x,
-                   alpha,
-                   beta,
-                   ):
+    def activation(self, x: tf.Tensor, alpha: tf.Tensor, beta: tf.Tensor
+                   ) -> tf.Tensor:
         r"""
         Non-linear activation function
 
@@ -186,13 +179,13 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             Tensor:
                 the result of applying the non-linear activation function to the linear output of the layer
         """
-        return tf.multiply(tf.add(beta, tf.multiply(tf.sigmoid(tf.multiply(alpha, x)), tf.subtract(1.0, beta)) ), x)
+        return tf.multiply(tf.add(beta,
+                                  tf.multiply(tf.sigmoid(tf.multiply(alpha,
+                                                                     x)),
+                                              tf.subtract(1.0, beta))), x)
 
-
-    # forward pass through the network to predict PCA coefficients
-    def forward_pass_tf(self,
-                        parameters_tensor,
-                        training = False):
+    def forward_pass_tf(self, parameters_tensor: tf.Tensor,
+                        training: bool = False) -> tf.Tensor:
         r"""
         Forward pass through the network to predict the PCA coefficients,
         fully implemented in TensorFlow
@@ -223,12 +216,9 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         # rescale the output (predicted PCA coefficients) and return
         return tf.add(tf.multiply(layers[-1], self.pca_std), self.pca_mean)
 
-
-    # pass inputs through the network to predict (log)-spectrum
     @tf.function
-    def predictions_tf(self,
-                       parameters_tensor,
-                       training = False):
+    def predictions_tf(self, parameters_tensor: tf.Tensor,
+                       training: bool = False) -> tf.Tensor:
         r"""
         Predictions given tensor of input parameters,
         fully implemented in TensorFlow. Calls ``forward_pass_tf``
@@ -243,17 +233,17 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 output predictions
         """
         # pass through network to compute PCA coefficients
-        pca_coefficients = self.forward_pass_tf(parameters_tensor, training = training)
+        pca_coefficients = self.forward_pass_tf(parameters_tensor,
+                                                training=training)
 
         # transform from PCA to normalized spectrum basis; shift and re-scale normalised (log)-spectrum -> (log)-spectrum
-        return tf.add(tf.multiply(tf.matmul(pca_coefficients, self.pca_transform_matrix), self.features_std), self.features_mean)
+        return tf.add(tf.multiply(tf.matmul(pca_coefficients,
+                                            self.pca_transform_matrix),
+                                  self.features_std), self.features_mean)
 
-
-    # tensor 10.**predictions
     @tf.function
-    def ten_to_predictions_tf(self,
-                           parameters_dict,
-                           training = False):
+    def ten_to_predictions_tf(self, parameters_dict: dict,
+                              training: bool = False) -> tf.Tensor:
         r"""
         10^predictions given tensor of input parameters,
         fully implemented in TensorFlow. It raises 10 to the output
@@ -267,11 +257,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             Tensor:
                10^output predictions
         """
-        return tf.pow(10., self.predictions_tf(parameters_dict, training = training))
+        return tf.pow(10., self.predictions_tf(parameters_dict,
+                                               training=training))
 
-
-    # save network parameters to Numpy arrays
-    def update_emulator_parameters(self):
+    def update_emulator_parameters(self) -> None:
         r"""
         Update emulator parameters before saving them
         """
@@ -293,11 +282,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         # pca transform matrix
         self.pca_transform_matrix_ = self.cp_pca.pca_transform_matrix
 
-
-    # save
-    def save(self,
-             filename,
-             ):
+    def save(self, filename: str) -> None:
         r"""
         Save network parameters
 
@@ -306,7 +291,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 filename tag (without suffix) where model will be saved
         """
         # Save data as compressed numpy file.
-        attributes = { }
+        attributes = {}
         attributes["architecture"] = self.architecture
         attributes["n_layers"] = self.n_layers
         attributes["n_hidden"] = self.n_hidden
@@ -336,8 +321,6 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         with open(filename + ".npz", "wb") as fp:
             np.savez_compressed(fp, **attributes)
 
-
-    # restore attributes
     def restore(self, filename: str, allow_pickle: bool = False) -> None:
         r"""
         Load pre-trained model.
@@ -364,7 +347,9 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 return
 
             raise IOError(f"Failed to restore network from {filename}: " +
-                (" is a pickle file, try setting 'allow_pickle = True'" if os.path.exists(filename_pkl) else " does not exist."))
+                          (" is a pickle file, try setting 'allow_pickle = \
+                            True'" if os.path.exists(filename_pkl) else
+                           " does not exist."))
 
         with open(filename_npz, "rb") as fp:
             fpz = np.load(fp)
@@ -388,10 +373,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             self.n_pcas = fpz["n_pcas"]
             self.pca_transform_matrix_ = fpz["pca_transform_matrix"]
 
-            self.W_ = [ fpz[f"W_{i}"] for i in range(self.n_layers) ]
-            self.b_ = [ fpz[f"b_{i}"] for i in range(self.n_layers) ]
-            self.alphas_ = [ fpz[f"alphas_{i}"] for i in range(self.n_layers-1) ]
-            self.betas_ = [ fpz[f"betas_{i}"] for i in range(self.n_layers-1) ]
+            self.W_ = [fpz[f"W_{i}"] for i in range(self.n_layers)]
+            self.b_ = [fpz[f"b_{i}"] for i in range(self.n_layers)]
+            self.alphas_ = [fpz[f"alphas_{i}"] for i in range(self.n_layers-1)]
+            self.betas_ = [fpz[f"betas_{i}"] for i in range(self.n_layers-1)]
 
     def restore_pickle(self, filename: str) -> None:
         r"""
@@ -430,10 +415,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         self.n_pcas = n_pcas
         self.pca_transform_matrix_ = pca_transform_matrix
 
-        self.W_ = [ W[i] for i in range(self.n_layers) ]
-        self.b_ = [ b[i] for i in range(self.n_layers) ]
-        self.alphas_ = [ alphas[i] for i in range(self.n_layers-1) ]
-        self.betas_ = [ betas[i] for i in range(self.n_layers-1) ]
+        self.W_ = [W[i] for i in range(self.n_layers)]
+        self.b_ = [b[i] for i in range(self.n_layers)]
+        self.alphas_ = [alphas[i] for i in range(self.n_layers-1)]
+        self.betas_ = [betas[i] for i in range(self.n_layers-1)]
 
     # auxiliary function to sort input parameters
     def dict_to_ordered_arr_np(self,
@@ -450,18 +435,14 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             numpy.ndarray:
                 parameters sorted according to desired order
         """
-        input_dict = { k : np.atleast_1d(input_dict[k]) for k in input_dict }
+        input_dict = {k: np.atleast_1d(input_dict[k]) for k in input_dict}
 
         if self.parameters is not None:
             return np.stack([input_dict[k] for k in self.parameters], axis=1)
         else:
             return np.stack([input_dict[k] for k in input_dict], axis=1)
 
-
-    # forward prediction given input parameters implemented in Numpy
-    def forward_pass_np(self,
-                        parameters_arr,
-                        ):
+    def forward_pass_np(self, parameters_arr: np.ndarray) -> np.ndarray:
         r"""
         Forward pass through the network to predict the output,
         fully implemented in Numpy
@@ -491,10 +472,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         # rescale PCA coefficients, multiply out PCA basis -> normalised (log)-spectrum, shift and re-scale (log)-spectrum -> output (log)-spectrum
         return np.dot(layers[-1]*self.pca_std_ + self.pca_mean_, self.pca_transform_matrix_)*self.features_std_ + self.features_mean_
 
-
-    def predictions_np(self,
-                       parameters_dict,
-                       ):
+    def predictions_np(self, parameters_dict: dict) -> np.ndarray:
         r"""
         Predictions given input parameters collected in a dict.
         Fully implemented in Numpy. Calls ``forward_pass_np``
@@ -511,8 +489,6 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         parameters_arr = self.dict_to_ordered_arr_np(parameters_dict)
         return self.forward_pass_np(parameters_arr)
 
-
-    # 10.**predictions
     def ten_to_predictions_np(self,
                               parameters_dict,
                               ):
@@ -529,17 +505,12 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             numpy.ndarray:
                 10^output predictions
         """
-        return 10.**self.predictions_np(parameters_dict)
-
-
-
-    ### Infrastructure for network training ###
+        return 10. ** self.predictions_np(parameters_dict)
 
     @tf.function
-    def compute_loss(self,
-                     training_parameters,
-                     training_pca,
-                     training = False):
+    def compute_loss(self, training_parameters: tf.Tensor,
+                     training_pca: tf.Tensor, training: bool = False
+                     ) -> tf.Tensor:
         r"""
         Mean squared difference
 
@@ -553,14 +524,12 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             Tensor:
                 mean squared difference
         """
-        return tf.sqrt(tf.reduce_mean(tf.math.squared_difference(self.forward_pass_tf(training_parameters, training = training), training_pca)))
-
+        return tf.sqrt(tf.reduce_mean(tf.math.squared_difference(self.forward_pass_tf(training_parameters, training=training), training_pca)))
 
     @tf.function
-    def compute_loss_and_gradients(self,
-                                   training_parameters,
-                                   training_pca,
-                                   training = False):
+    def compute_loss_and_gradients(self, training_parameters: tf.Tensor,
+                                   training_pca: tf.Tensor,
+                                   training: bool = False) -> tf.Tensor:
         r"""
         Compute mean squared difference and gradients
 
@@ -579,19 +548,16 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         # compute loss on the tape
         with tf.GradientTape() as tape:
 
-          # loss
-          loss = tf.sqrt(tf.reduce_mean(tf.math.squared_difference(self.forward_pass_tf(training_parameters, training = training), training_pca)))
+            # loss
+            loss = tf.sqrt(tf.reduce_mean(tf.math.squared_difference(self.forward_pass_tf(training_parameters, training=training), training_pca)))
 
         # compute gradients
         gradients = tape.gradient(loss, self.trainable_variables)
 
         return loss, gradients
 
-
-    def training_step(self,
-                      training_parameters,
-                      training_pca,
-                      ):
+    def training_step(self, training_parameters: tf.Tensor,
+                      training_pca: tf.Tensor) -> tf.Tensor:
         r"""
         Optimizes loss
 
@@ -606,19 +572,18 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 mean squared difference
         """
         # compute loss and gradients
-        loss, gradients = self.compute_loss_and_gradients(training_parameters, training_pca, training = True)
+        loss, gradients = self.compute_loss_and_gradients(training_parameters, training_pca, training=True)
 
         # apply gradients
         self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
 
         return loss
 
-
     def training_step_with_accumulated_gradients(self,
-                                                 training_parameters,
-                                                 training_pca,
-                                                 accumulation_steps=10,
-                                                 ):
+                                                 training_parameters: tf.Tensor,  # noqa: E501
+                                                 training_pca: tf.Tensor,
+                                                 accumulation_steps: int = 10,
+                                                 ) -> tf.Tensor:
         r"""
         Optimize loss breaking calculation into accumulated gradients
 
@@ -645,29 +610,25 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         for training_parameters_, training_pca_ in dataset:
 
             # calculate loss and gradients
-            loss, gradients = self.compute_loss_and_gradients(training_parameters_, training_pca_, training = True)
+            loss, gradients = self.compute_loss_and_gradients(training_parameters_, training_pca_, training=True)
 
             # update the accumulated gradients and loss
             for i in range(len(accumulated_gradients)):
-                accumulated_gradients[i].assign_add(gradients[i]*training_pca_.shape[0]/training_pca.shape[0])
-            accumulated_loss.assign_add(loss*training_pca_.shape[0]/training_pca.shape[0])
+                accumulated_gradients[i].assign_add(gradients[i] * training_pca_.shape[0] / training_pca.shape[0])
+            accumulated_loss.assign_add(loss * training_pca_.shape[0] / training_pca.shape[0])
 
             # apply accumulated gradients
             self.optimizer.apply_gradients(zip(accumulated_gradients, self.trainable_variables))
 
         return accumulated_loss
 
-
-# ==========================================
-#         main TRAINING function
-# ==========================================
-    def train(self, training_data: Sequence[Dataset], 
+    def train(self, training_data: Sequence[Dataset],
               filename_saved_model: str, validation_split: float = 0.1,
               learning_rates: Sequence[float] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6],
-              batch_sizes: Union[int,Sequence[int]] = 1000,
-              gradient_accumulation_steps: Union[int,Sequence[int]] = 1,
-              patience_values: Union[int,Sequence[int]] = 100,
-              max_epochs: Union[int,Sequence[int]] = 1000) -> None:
+              batch_sizes: Union[int, Sequence[int]] = 1000,
+              gradient_accumulation_steps: Union[int, Sequence[int]] = 1,
+              patience_values: Union[int, Sequence[int]] = 100,
+              max_epochs: Union[int, Sequence[int]] = 1000) -> None:
         r"""
         Train the model
 
@@ -700,9 +661,11 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             max_epochs = n_iter * [max_epochs]
 
         # check correct number of steps
-        assert len(learning_rates)==len(batch_sizes)\
-               ==len(gradient_accumulation_steps)==len(patience_values)==len(max_epochs), \
-               "Number of learning rates, batch sizes, gradient accumulation steps, patience values and max epochs are not matching!"
+        assert len(learning_rates) == len(batch_sizes) == \
+               len(gradient_accumulation_steps) == len(patience_values) == \
+               len(max_epochs), "Number of learning rates, batch sizes, \
+                                 gradient accumulation steps, patience values \
+                                 and max epochs are not matching!"
 
         # training start info, if verbose
         if self.verbose:
@@ -734,10 +697,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             with dataset:
                 parameters, features = dataset.read_data()
 
-            m = ~np.logical_or(np.any(np.isnan(parameters), axis = 1), np.any(np.isnan(features), axis = 1))
+            m = ~np.logical_or(np.any(np.isnan(parameters), axis=1), np.any(np.isnan(features), axis=1))
 
-            parameters = parameters[m,:]
-            features = features[m,:]
+            parameters = parameters[m, :]
+            features = features[m, :]
 
             if training_parameters is None:
                 training_parameters = parameters
@@ -749,10 +712,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         if not self.cp_pca.is_compressed:
             print("\tCompressing PCA.")
 
-            self.cp_pca.parameters_mean = np.nanmean(training_parameters, axis = 0)
-            self.cp_pca.parameters_std = np.nanstd(training_parameters, axis = 0)
-            self.cp_pca.features_mean = np.nanmean(training_features, axis = 0)
-            self.cp_pca.features_std = np.nanstd(training_features, axis = 0)
+            self.cp_pca.parameters_mean = np.nanmean(training_parameters, axis=0)
+            self.cp_pca.parameters_std = np.nanstd(training_parameters, axis=0)
+            self.cp_pca.features_mean = np.nanmean(training_features, axis=0)
+            self.cp_pca.features_std = np.nanstd(training_features, axis=0)
 
             for n in range(self.cp_pca.n_batches):
                 normalized_features = (training_features[n::self.cp_pca.n_batches] - self.cp_pca.features_mean) / self.cp_pca.features_std
@@ -761,7 +724,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             training_pca = self.cp_pca.PCA.transform((training_features - self.cp_pca.features_mean) / self.cp_pca.features_std)
 
             self.cp_pca.pca_mean = np.mean(training_pca)
-            self.cp_pca.pca_std = np.std(training_pca, axis = 0)
+            self.cp_pca.pca_std = np.std(training_pca, axis=0)
             self.cp_pca.training_parameters = training_parameters.copy()
             self.cp_pca.training_pca = training_pca
 
@@ -769,30 +732,40 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             self.n_pcas = self.pca_transform_matrix_.shape[0]
 
             # PCA mean and std
-            self.pca_mean = tf.constant(self.cp_pca.pca_mean, dtype=dtype, name="pca_mean")
-            self.pca_std = tf.constant(self.cp_pca.pca_std, dtype=dtype, name="pca_std")
+            self.pca_mean = tf.constant(self.cp_pca.pca_mean, dtype=dtype,
+                                        name="pca_mean")
+            self.pca_std = tf.constant(self.cp_pca.pca_std, dtype=dtype,
+                                       name="pca_std")
 
             # pca transform matrix
-            self.pca_transform_matrix = tf.constant(self.cp_pca.pca_transform_matrix, dtype=dtype, name="pca_transform_matrix")
+            self.pca_transform_matrix = tf.constant(
+                self.cp_pca.pca_transform_matrix, dtype=dtype,
+                name="pca_transform_matrix")
 
-            print(f"\tPCA compression done.")
+            print("\tPCA compression done.")
 
         # input parameters mean and std
-        self.parameters_mean = tf.constant(self.cp_pca.parameters_mean, dtype=dtype, name="parameters_mean")
-        self.parameters_std = tf.constant(self.cp_pca.parameters_std, dtype=dtype, name="parameters_std")
+        self.parameters_mean = tf.constant(self.cp_pca.parameters_mean,
+                                           dtype=dtype, name="parameters_mean")
+        self.parameters_std = tf.constant(self.cp_pca.parameters_std,
+                                          dtype=dtype, name="parameters_std")
 
         # (log)-spectra mean and std
-        self.features_mean = tf.constant(self.cp_pca.features_mean, dtype=dtype, name="features_mean")
-        self.features_std = tf.constant(self.cp_pca.features_std, dtype=dtype, name="features_std")
+        self.features_mean = tf.constant(self.cp_pca.features_mean,
+                                         dtype=dtype, name="features_mean")
+        self.features_std = tf.constant(self.cp_pca.features_std,
+                                        dtype=dtype, name="features_std")
 
         # training/validation split
         n_samples = training_parameters.shape[0]
         n_validation = int(n_samples * validation_split)
         n_training = int(n_samples) - n_validation
 
-        training_pca = self.cp_pca.PCA.transform((training_features - self.cp_pca.features_mean) / self.cp_pca.features_std)
-        training_parameters = tf.convert_to_tensor(training_parameters, dtype = dtype)
-        training_pca = tf.convert_to_tensor(training_pca, dtype = dtype)
+        training_pca = self.cp_pca.PCA.transform(
+             (training_features - self.cp_pca.features_mean) /
+             self.cp_pca.features_std)
+        training_parameters = tf.convert_to_tensor(training_parameters, dtype=dtype)
+        training_pca = tf.convert_to_tensor(training_pca, dtype=dtype)
 
         # train using cooling/heating schedule for lr/batch-size
         for i in range(len(learning_rates)):
