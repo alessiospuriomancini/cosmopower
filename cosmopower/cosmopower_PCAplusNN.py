@@ -5,6 +5,7 @@ import os
 import warnings
 import numpy as np
 import tensorflow as tf
+from typing import Sequence, Union
 from tqdm import trange
 dtype = tf.float32
 
@@ -14,19 +15,19 @@ dtype = tf.float32
 # =================================
 class cosmopower_PCAplusNN(tf.keras.Model):
     r"""
-    Mapping between cosmological parameters and PCA coefficients of (log)-power spectra.
-    Requires PCA compression to have been previously computed (`cosmopower_PCA`).
+    Mapping between cosmological parameters and PCA coefficients of
+    (log)-power spectra. Requires PCA compression to have been previously
+    computed (`cosmopower_PCA`).
 
     Attributes:
         cp_pca (cosmopower_PCA):
             `cosmopower_PCA` instance
         n_hidden (list [int]):
             list with number of nodes for each hidden layer
-        restore (bool):
-            whether to restore a previously trained model or not
         restore_filename (str):
             filename tag (without suffix) for restoring trained model from file
-            (this will be a pickle file with all of the model attributes and weights)
+            (this will be an NPZ or pickle file with all of the model
+            attributes and weights)
         trainable (bool):
             training layers
         optimizer (tf.keras.optimizer):
@@ -37,15 +38,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             whether to permit the (legacy) loading of .pkl files.
     """
 
-    def __init__(self,
-                 cp_pca=None,
-                 n_hidden=[512,512,512],
-                 restore_filename=None,
-                 trainable=True,
-                 optimizer=None,
-                 verbose=False,
-                 allow_pickle=False,
-                 ):
+    def __init__(self, cp_pca: object = None, n_hidden: list = [512,512,512],
+                 restore_filename: Optional[str] = None,
+                 trainable: bool = True, optimizer: tf.keras.Optimizer = None,
+                 verbose: bool = False, allow_pickle: bool = False) -> None:
         r"""
         Constructor.
         """
@@ -53,7 +49,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         super(cosmopower_PCAplusNN, self).__init__()
 
         # restore
-        if not restore_filename is None:
+        if restore_filename is not None:
             self.restore(restore_filename, allow_pickle = allow_pickle)
             self.cp_pca = None
 
@@ -78,7 +74,8 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             self.n_hidden = n_hidden
 
             # architecture
-            self.architecture = [self.n_parameters] + self.n_hidden + [self.n_pcas]
+            self.architecture = [self.n_parameters] + self.n_hidden + \
+                                [self.n_pcas]
             self.n_layers = len(self.architecture) - 1
 
             # standardisation
@@ -98,19 +95,30 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 
         if self.cp_pca is not None and self.cp_pca.is_compressed:
             # input parameters mean and std
-            self.parameters_mean = tf.constant(self.parameters_mean_, dtype=dtype, name='parameters_mean')
-            self.parameters_std = tf.constant(self.parameters_std_, dtype=dtype, name='parameters_std')
+            self.parameters_mean = tf.constant(self.parameters_mean_,
+                                               dtype=dtype,
+                                               name="parameters_mean")
+            self.parameters_std = tf.constant(self.parameters_std_,
+                                              dtype=dtype,
+                                              name="parameters_std")
 
             # PCA mean and std
-            self.pca_mean = tf.constant(self.pca_mean_, dtype=dtype, name='pca_mean')
-            self.pca_std = tf.constant(self.pca_std_, dtype=dtype, name='pca_std')
+            self.pca_mean = tf.constant(self.pca_mean_, dtype=dtype,
+                                        name="pca_mean")
+            self.pca_std = tf.constant(self.pca_std_, dtype=dtype,
+                                       name="pca_std")
 
             # (log)-spectra mean and std
-            self.features_mean = tf.constant(self.features_mean_, dtype=dtype, name='features_mean')
-            self.features_std = tf.constant(self.features_std_, dtype=dtype, name='features_std')
+            self.features_mean = tf.constant(self.features_mean_,
+                                             dtype=dtype, name="features_mean")
+            self.features_std = tf.constant(self.features_std_,
+                                            dtype=dtype, name="features_std")
 
             # pca transform matrix
-            self.pca_transform_matrix = tf.constant(self.pca_transform_matrix_, dtype=dtype, name='pca_transform_matrix')
+            self.pca_transform_matrix = tf.constant(self.pca_transform_matrix_,
+                                                    dtype=dtype,
+                                                    name="pca_transform_matrix"
+                                                    )
 
         # weights, biases and activation function parameters for each layer of the network
         self.W = []
@@ -118,11 +126,20 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         self.alphas = []
         self.betas = []
         for i in range(self.n_layers):
-            self.W.append(tf.Variable(tf.random.normal([self.architecture[i], self.architecture[i+1]], 0., np.sqrt(2./self.n_parameters)), name="W_" + str(i), trainable=trainable))
-            self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]), name = "b_" + str(i), trainable=trainable))
+            self.W.append(tf.Variable(tf.random.normal([
+                    self.architecture[i], self.architecture[i+1]
+                ], 0., np.sqrt(2./self.n_parameters)), name="W_" + str(i),
+                trainable=trainable))
+            self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]),
+                name = "b_" + str(i),
+                trainable=trainable))
         for i in range(self.n_layers-1):
-            self.alphas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name = "alphas_" + str(i), trainable=trainable))
-            self.betas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name = "betas_" + str(i), trainable=trainable))
+            self.alphas.append(tf.Variable(
+                tf.random.normal([self.architecture[i+1]]),
+                name = "alphas_" + str(i), trainable=trainable))
+            self.betas.append(tf.Variable(
+                tf.random.normal([self.architecture[i+1]]),
+                name = "betas_" + str(i), trainable=trainable))
 
         # restore weights if restoring
         if not restore_filename is None:
@@ -644,18 +661,13 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 # ==========================================
 #         main TRAINING function
 # ==========================================
-    def train(self,
-              training_data,
-              filename_saved_model,
-              # cooling schedule
-              validation_split=0.1,
-              learning_rates=[1e-2, 1e-3, 1e-4, 1e-5, 1e-6],
-              batch_sizes=1000,
-              gradient_accumulation_steps = 1,
-              # early stopping set up
-              patience_values = 100,
-              max_epochs = 1000,
-             ):
+    def train(self, training_data: Sequence[Dataset], 
+              filename_saved_model: str, validation_split: float = 0.1,
+              learning_rates: Sequence[float] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6],
+              batch_sizes: Union[int,Sequence[int]] = 1000,
+              gradient_accumulation_steps: Union[int,Sequence[int]] = 1,
+              patience_values: Union[int,Sequence[int]] = 100,
+              max_epochs: Union[int,Sequence[int]] = 1000) -> None:
         r"""
         Train the model
 
@@ -678,15 +690,19 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 maximum number of epochs for each step of learning schedule
         """
         n_iter = len(learning_rates)
-        if type(batch_sizes) != list: batch_sizes = n_iter * [batch_sizes]
-        if type(gradient_accumulation_steps) != list: gradient_accumulation_steps = n_iter * [gradient_accumulation_steps]
-        if type(patience_values) != list: patience_values = n_iter * [patience_values]
-        if type(max_epochs) != list: max_epochs = n_iter * [max_epochs]
+        if type(batch_sizes) != list:
+            batch_sizes = n_iter * [batch_sizes]
+        if type(gradient_accumulation_steps) != list:
+            gradient_accumulation_steps = n_iter * [gradient_accumulation_steps]
+        if type(patience_values) != list:
+            patience_values = n_iter * [patience_values]
+        if type(max_epochs) != list:
+            max_epochs = n_iter * [max_epochs]
 
         # check correct number of steps
         assert len(learning_rates)==len(batch_sizes)\
                ==len(gradient_accumulation_steps)==len(patience_values)==len(max_epochs), \
-               'Number of learning rates, batch sizes, gradient accumulation steps, patience values and max epochs are not matching!'
+               "Number of learning rates, batch sizes, gradient accumulation steps, patience values and max epochs are not matching!"
 
         # training start info, if verbose
         if self.verbose:
@@ -753,21 +769,21 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             self.n_pcas = self.pca_transform_matrix_.shape[0]
 
             # PCA mean and std
-            self.pca_mean = tf.constant(self.cp_pca.pca_mean, dtype=dtype, name='pca_mean')
-            self.pca_std = tf.constant(self.cp_pca.pca_std, dtype=dtype, name='pca_std')
+            self.pca_mean = tf.constant(self.cp_pca.pca_mean, dtype=dtype, name="pca_mean")
+            self.pca_std = tf.constant(self.cp_pca.pca_std, dtype=dtype, name="pca_std")
 
             # pca transform matrix
-            self.pca_transform_matrix = tf.constant(self.cp_pca.pca_transform_matrix, dtype=dtype, name='pca_transform_matrix')
+            self.pca_transform_matrix = tf.constant(self.cp_pca.pca_transform_matrix, dtype=dtype, name="pca_transform_matrix")
 
             print(f"\tPCA compression done.")
 
         # input parameters mean and std
-        self.parameters_mean = tf.constant(self.cp_pca.parameters_mean, dtype=dtype, name='parameters_mean')
-        self.parameters_std = tf.constant(self.cp_pca.parameters_std, dtype=dtype, name='parameters_std')
+        self.parameters_mean = tf.constant(self.cp_pca.parameters_mean, dtype=dtype, name="parameters_mean")
+        self.parameters_std = tf.constant(self.cp_pca.parameters_std, dtype=dtype, name="parameters_std")
 
         # (log)-spectra mean and std
-        self.features_mean = tf.constant(self.cp_pca.features_mean, dtype=dtype, name='features_mean')
-        self.features_std = tf.constant(self.cp_pca.features_std, dtype=dtype, name='features_std')
+        self.features_mean = tf.constant(self.cp_pca.features_mean, dtype=dtype, name="features_mean")
+        self.features_std = tf.constant(self.cp_pca.features_std, dtype=dtype, name="features_std")
 
         # training/validation split
         n_samples = training_parameters.shape[0]
@@ -781,21 +797,24 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         # train using cooling/heating schedule for lr/batch-size
         for i in range(len(learning_rates)):
 
-            print('learning rate = ' + str(learning_rates[i]) + ', batch size = ' + str(batch_sizes[i]))
+            print(f"learning rate = {learning_rates[i]}, \
+                    batch size = {batch_sizes[i]}")
 
             # set learning rate
             self.optimizer.lr = learning_rates[i]
 
             # split into validation and training sub-sets
-            split = tf.random.shuffle([True] * n_training + [False] * n_validation)
+            split = tf.random.shuffle([True] * n_training +
+                                      [False] * n_validation)
 
             # create iterable dataset (given batch size)
-            training_data = tf.data.Dataset.from_tensor_slices((training_parameters[split], training_pca[split])).shuffle(n_training).batch(batch_sizes[i])
+            training_data = tf.data.Dataset.from_tensor_slices(
+                (training_parameters[split], training_pca[split])
+            ).shuffle(n_training).batch(batch_sizes[i])
             validation_parameters = training_parameters[~split]
             validation_features = training_pca[~split]
 
             # set up training loss
-            training_loss = [np.infty]
             validation_loss = [np.infty]
             best_loss = np.infty
             early_stopping_counter = 0
@@ -806,14 +825,19 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                     # loop over batches
                     for theta, pca in training_data:
 
-                        # training step: check whether to accumulate gradients or not (only worth doing this for very large batch sizes)
+                        # training step: check whether to accumulate gradients
+                        # or not (only worth doing this for very large batch
+                        # sizes)
                         if gradient_accumulation_steps[i] == 1:
                             loss = self.training_step(theta, pca)
                         else:
-                            loss = self.training_step_with_accumulated_gradients(theta, pca, accumulation_steps=gradient_accumulation_steps[i])
+                            loss = self.training_step_with_accumulated_gradients(  # noqa E501
+                                theta, pca,
+                                accumulation_steps=gradient_accumulation_steps[i])  # noqa E501
 
                     # compute validation loss at the end of the epoch
-                    vloss = self.compute_loss(validation_parameters, validation_features).numpy()
+                    vloss = self.compute_loss(validation_parameters,
+                                              validation_features).numpy()
                     validation_loss.append(vloss)
 
                     # early stopping condition
@@ -824,18 +848,22 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                         early_stopping_counter += 1
 
                     # update the progressbar
-                    t.set_postfix(loss = best_loss)
+                    t.set_postfix(loss=best_loss)
 
-                    progress_file.write(f"{i}\t{learning_rates[i]:e}\t{batch_sizes[i]:d}\t{epoch:d}\t{vloss:f}\t{best_loss:f}\n")
+                    progress_file.write(f"{i}\t{learning_rates[i]:e}\t\
+                                          {batch_sizes[i]:d}\t{epoch:d}\t\
+                                          {vloss:f}\t{best_loss:f}\n")
                     progress_file.flush()
 
                     if early_stopping_counter >= patience_values[i]:
                         self.update_emulator_parameters()
                         self.save(filename_saved_model)
-                        print('Validation loss = ' + str(best_loss))
-                        print('Model saved.')
+                        print(f"Validation loss = {best_loss}")
+                        print("Model saved.")
                         break
+
                 self.update_emulator_parameters()
                 self.save(filename_saved_model)
-                print('Reached max number of epochs. Validation loss = ' + str(best_loss))
-                print('Model saved.')
+                print(f"Reached max number of epochs. \
+                        Validation loss = {best_loss}")
+                print("Model saved.")
