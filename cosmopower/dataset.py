@@ -170,7 +170,8 @@ class Dataset:
         cast_1d = (type(indices) == int)
         indices = np.atleast_1d(indices)
 
-        entries = np.where(np.in1d(self.file["data"]["indices"][:], indices))[0]
+        entries = np.where(np.in1d(self.file["data"]["indices"][:],
+                                   indices))[0]
 
         parameters = {
             k.decode(): self.file["data"]["parameters"][entries, i]
@@ -192,21 +193,22 @@ class Dataset:
         cast_1d = (type(indices) == int)
         indices = np.atleast_1d(indices)
 
-        entries = np.where(np.in1d(self.file["data"]["indices"][:], indices))[0]
+        entries = np.where(np.in1d(self.file["data"]["indices"][:],
+                                   indices))[0]
         spec = self.file["data"]["spectra"][entries, :]
         if cast_1d:
             spec = spec[0, :]
 
         return spec
 
-    def read_data(self) -> Tuple[np.ndarray,np.ndarray]:
+    def read_data(self) -> Tuple[np.ndarray, np.ndarray]:
         """Read the ENTIRE file, returning a (parameters, spectra) tuple of
            numpy arrays of generated spectra."""
         self.check_open()
         entries = np.where(self.file["data"]["indices"][:] != -1)[0]
 
-        parameters = self.file["data"]["parameters"][entries,:]
-        spectra = self.file["data"]["spectra"][entries,:]
+        parameters = self.file["data"]["parameters"][entries, :]
+        spectra = self.file["data"]["spectra"][entries, :]
 
         return parameters, spectra
 
