@@ -8,17 +8,19 @@ from .cosmopower_PCAplusNN import cosmopower_PCAplusNN
 from .cosmopower_NN import cosmopower_NN
 
 NETWORK_CLASSES = {
-  "NN" : cosmopower_NN,
-  "PCA" : cosmopower_PCA,
-  "PCAplusNN" : cosmopower_PCAplusNN
+  "NN": cosmopower_NN,
+  "PCA": cosmopower_PCA,
+  "PCAplusNN": cosmopower_PCAplusNN
 }
 
+
 class YAMLParser:
-    def __init__(self, filename: str = "", root_dir: Optional[str] = None) -> None:
+    def __init__(self, filename: str = "", root_dir: Optional[str] = None
+                 ) -> None:
         """
         Open a YAML package file and do some basic parsing.
         """
-        data = { }
+        data = {}
         self._filename = filename
         self._root_dir = root_dir or "."
 
@@ -27,20 +29,16 @@ class YAMLParser:
 
         self._boltzmann_code = data.get("emulated_code")
 
-        self._samples = data.get("samples", { })
-        self._parameters = self._samples.get("parameters", { })
-        self._modes = self._samples.get("modes", { })
-        self._networks = data.get("networks", { })
+        self._samples = data.get("samples", {})
+        self._parameters = self._samples.get("parameters", {})
+        self._modes = self._samples.get("modes", {})
+        self._networks = data.get("networks", {})
 
         self._network_name = data.get("network_name", "network")
         self._path = data.get("path", ".")
 
         self._allow_pickle = data.get("allow_pickle", False)
         self._max_filesize = data.get("max_filesize", 10000)
-
-        # TODO: ensure minimal information exists within the data set.
-        # e.g. every network should have a number of training samples, ensure that that value exists.
-        # determine which values can be safely set to a default value and which ones HAVE to be given.
 
         # Sort the parameters into three sets:
         # - those that are sampled in the LHC.
@@ -51,19 +49,19 @@ class YAMLParser:
         self._theory_computed_parameters = []
 
         for param in self._parameters:
-            if type(self._parameters[param]) in [list,tuple]:
+            if type(self._parameters[param]) in [list, tuple]:
                 self._lhc_input_parameters.append(param)
-            elif type(self._parameters[param]) in [int,float,str]:
+            elif type(self._parameters[param]) in [int, float, str]:
                 self._derived_parameters.append(param)
             else:
                 self._theory_computed_parameters.append(param)
 
     def initialize_networks(self) -> dict:
         """
-        This function should setup the (untrained) networks and return a dictionary
-        with them.
+        This function should setup the (untrained) networks and return a
+        dictionary with them.
         """
-        networks = { }
+        networks = {}
 
         for quantity in self.quantities:
             network_type = self.network_type(quantity)
@@ -75,8 +73,7 @@ class YAMLParser:
             modes = self.modes(quantity)
 
             network_class = NETWORK_CLASSES[network_type](
-                parameters = self.network_input_parameters(quantity),
-                modes = modes
+                parameters=self.network_input_parameters(quantity), modes=modes
             )
 
             networks[quantity] = network_class
@@ -88,15 +85,15 @@ class YAMLParser:
         This function should look up the pickle (or other) files to restore the
         functional networks from and then return those as a dictionary.
         """
-        networks = { }
+        networks = {}
 
         for quantity in self.quantities:
             try:
                 network_type = self.network_type(quantity)
 
                 network_class = NETWORK_CLASSES[network_type](
-                    restore_filename = self.network_path(quantity),
-                    allow_pickle = self.allow_pickle
+                    restore_filename=self.network_path(quantity),
+                    allow_pickle=self.allow_pickle
                 )
 
                 networks[quantity] = network_class
@@ -104,34 +101,6 @@ class YAMLParser:
                 print(f"Failed to restore network {quantity}: {str(e)}.")
 
         return networks
-
-    def settings(self, quantity: str) -> dict:
-        result = None
-
-        for network_data in self._networks:
-            if network_data["quantity"] == quantity:
-                result = network_data.copy()
-
-        if result is None:
-            raise KeyError(f"Quantity {quantity} is not defined in {self.yaml_filename}.")
-
-        return result
-
-    def is_log(self, quantity: str) -> bool:
-        return self.settings(quantity).get("log", False)
-
-    @property
-    def yaml_filename(self) -> str:
-        return self._filename
-
-    @property
-    def quantities(self) -> Sequence[str]:
-        quantities = []
-
-        for network_data in self._networks:
-            quantities.append(network_data["quantity"])
-
-        return quantities
 
     @property
     def base_name(self) -> str:
@@ -153,12 +122,15 @@ class YAMLParser:
 
     def network_filename(self, quantity) -> str:
         """
-        Return the filename for the network. If this is not set, the default is the
-        network_name and the network quantity, concatenated by an underscore.
+        Return the filename for the network. If this is not set, the default
+        is the network_name and the network quantity, concatenated by an
+        underscore.
         """
         for network in self._networks:
             if network["quantity"] == quantity:
-                return network.get("filename", "_".join([self.base_name, quantity.replace("/", "_")]))
+                return network.get("filename", "_".join([
+                    self.base_name, quantity.replace("/", "_")
+                ]))
 
         raise KeyError(f"Network computing {quantity} not found.")
 
@@ -166,12 +138,13 @@ class YAMLParser:
         """
         Return the full path to the network for a given quantity.
         """
-        return os.path.join(self.path, "networks", self.network_filename(quantity))
+        return os.path.join(self.path, "networks",
+                            self.network_filename(quantity))
 
     def network_training_parameters(self, quantity) -> dict:
         for network in self._networks:
             if network["quantity"] == quantity:
-                return network.get("training", { })
+                return network.get("training", {})
 
         raise KeyError(f"Unknown quantity {quantity}.")
 
@@ -222,7 +195,8 @@ class YAMLParser:
                 result = network_data.copy()
 
         if result is None:
-            raise KeyError(f"Quantity {quantity} is not defined in {self.yaml_filename}.")
+            raise KeyError(f"Quantity {quantity} is not defined in \
+                             {self.yaml_filename}.")
 
         return result
 
@@ -262,7 +236,8 @@ class YAMLParser:
                     else:
                         modes = np.linspace(float(xmin), float(xmax), steps)
                 elif spacing == "log":
-                    modes = np.logspace(np.log10(float(xmin)), np.log10(float(xmax)), steps)
+                    modes = np.logspace(np.log10(float(xmin)),
+                                        np.log10(float(xmax)), steps)
                 else:
                     raise ValueError(f"Unknown spacing option {spacing}.")
 
@@ -283,12 +258,13 @@ class YAMLParser:
 
     def modes_log(self, quantity) -> bool:
         """
-        Whether or not the modes (e.g. the x-axis of the quantity) is log-spaced.
+        Whether or not the modes (e.g. the x-axis of the quantity) is
+        log-spaced.
         """
         for network_data in self._networks:
-           if network_data["quantity"] == quantity:
-               mode_data = network_data["modes"]
-               return mode_data.get("spacing", "lin") == "log"
+            if network_data["quantity"] == quantity:
+                mode_data = network_data["modes"]
+                return mode_data.get("spacing", "lin") == "log"
 
         raise KeyError(f"Unknown quantity {quantity}.")
 
@@ -306,7 +282,7 @@ class YAMLParser:
         - float if the parameter is a fixed value.
         - str if the parameter is a directly derived value.
         """
-        if not param in self._parameters:
+        if param not in self._parameters:
             raise KeyError(f"Unknown parameter {param}.")
 
         par = self._parameters.get(param, None)
@@ -314,10 +290,10 @@ class YAMLParser:
         if par is None:
             return None
 
-        if type(par) in [list,tuple]:
+        if type(par) in [list, tuple]:
             return tuple(par)
 
-        if type(par) in [float,int]:
+        if type(par) in [float, int]:
             return float(par)
 
         return str(par)
@@ -339,7 +315,8 @@ class YAMLParser:
     @property
     def computed_parameters(self) -> Sequence[str]:
         """
-        A list of all parameters that we want to be computed by the theory code.
+        A list of all parameters that we want to be computed by the theory
+        code.
         """
         return self._theory_computed_parameters.copy()
 
@@ -347,7 +324,8 @@ class YAMLParser:
     def sampled_parameters(self) -> Sequence[str]:
         """
         All parameters that are included in the parameters file.
-        (these are all the parameters that are NOT computed by the theory code).
+        (these are all the parameters that are NOT computed by the theory
+        code).
         """
         return self.input_parameters + self.derived_parameters
 
@@ -356,7 +334,8 @@ class YAMLParser:
         """
         All parameters (input, derived, and computed).
         """
-        return self.input_parameters + self.derived_parameters + self.computed_parameters
+        return (self.input_parameters + self.derived_parameters +
+                self.computed_parameters)
 
     @property
     def allow_pickle(self) -> bool:
@@ -381,7 +360,7 @@ class YAMLParser:
         """
         Retrieve all the network traits for a certain network.
         """
-        traits = { }
+        traits = {}
         for net in self._networks:
             if net.get("quantity", None) == network:
                 for q in net:
