@@ -1,4 +1,5 @@
 import numpy as np
+from .parser import YAMLParser
 
 
 def _cmb_unit_factor(units, T_cmb):
@@ -73,7 +74,8 @@ def ell_factor(ls: np.ndarray, spectra: str) -> np.ndarray:
     return ellfac
 
 
-def get_noise_curves_CVL(parser, spectra: dict, fsky: float = 1.0) -> dict:
+def get_noise_curves_CVL(parser: YAMLParser, spectra: dict,
+                         fsky: float = 1.0) -> dict:
     results = {}
 
     # TT spectra.
@@ -113,7 +115,8 @@ def get_noise_curves_CVL(parser, spectra: dict, fsky: float = 1.0) -> dict:
     return results
 
 
-def get_noise_curves_SO(parser, spectra: dict, T_cmb: float = 2.7255) -> dict:
+def get_noise_curves_SO(parser: YAMLParser, spectra: dict,
+                        T_cmb: float = 2.7255) -> dict:
     results = {}
 
     TT_ells, TT_Nell = np.loadtxt("test/SO_LAT_Nell_T_atmv1_goal_fsky0p4_\
