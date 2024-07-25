@@ -5,6 +5,7 @@ import os
 import warnings
 import numpy as np
 import tensorflow as tf
+from typing import Sequence
 from tqdm import trange
 dtype = tf.float32
 
@@ -46,20 +47,17 @@ class cosmopower_NN(tf.keras.Model):
             whether to permit the (legacy) loading of .pkl files.
     """
 
-    def __init__(self,
-                 parameters=None,
-                 modes=None,
-                 parameters_mean=None,
-                 parameters_std=None,
-                 features_mean=None,
-                 features_std=None,
-                 n_hidden=[512,512,512],
-                 restore_filename=None,
-                 trainable=True,
-                 optimizer=None,
-                 verbose=False,
-                 allow_pickle=False,
-                 ):
+    def __init__(self, parameters: Optional[Sequence[str]] = None,
+                 modes: Optional[np.ndarray] = None,
+                 parameters_mean: Optional[np.ndarray] = None,
+                 parameters_std: Optional[np.ndarray] = None,
+                 features_mean: Optional[np.ndarray] = None,
+                 features_std: Optional[np.ndarray] = None,
+                 n_hidden: Sequence[int] = [512, 512, 512],
+                 restore_filename: Optional[str] = None,
+                 trainable: bool = True,
+                 optimizer: Optional[tf.keras.Optimizer] = None,
+                 verbose: bool = False, allow_pickle: bool = False) -> None:
         """
         Constructor
         """
@@ -67,8 +65,8 @@ class cosmopower_NN(tf.keras.Model):
         super(cosmopower_NN, self).__init__()
 
         # restore
-        if not restore_filename is None:
-            self.restore(restore_filename, allow_pickle = allow_pickle)
+        if restore_filename is not None:
+            self.restore(restore_filename, allow_pickle=allow_pickle)
 
         # else set variables from input arguments
         else:
@@ -106,20 +104,20 @@ class cosmopower_NN(tf.keras.Model):
         self.betas = []
         for i in range(self.n_layers):
             self.W.append(tf.Variable(tf.random.normal([self.architecture[i], self.architecture[i+1]], 0., 1e-3), name="W_" + str(i), trainable=trainable))
-            self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]), name = "b_" + str(i), trainable=trainable))
+            self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]), name="b_" + str(i), trainable=trainable))
 
         for i in range(self.n_layers-1):
-            self.alphas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name = "alphas_" + str(i), trainable=trainable))
-            self.betas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name = "betas_" + str(i), trainable=trainable))
+            self.alphas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name="alphas_" + str(i), trainable=trainable))
+            self.betas.append(tf.Variable(tf.random.normal([self.architecture[i+1]]), name="betas_" + str(i), trainable=trainable))
 
         # restore weights if restoring
-        if not restore_filename is None:
+        if restore_filename is not None:
             for i in range(self.n_layers):
-              self.W[i].assign(self.W_[i])
-              self.b[i].assign(self.b_[i])
+                self.W[i].assign(self.W_[i])
+                self.b[i].assign(self.b_[i])
             for i in range(self.n_layers-1):
-              self.alphas[i].assign(self.alphas_[i])
-              self.betas[i].assign(self.betas_[i])
+                self.alphas[i].assign(self.alphas_[i])
+                self.betas[i].assign(self.betas_[i])
 
         # optimizer
         self.optimizer = optimizer or tf.keras.optimizers.Adam()
@@ -133,14 +131,8 @@ class cosmopower_NN(tf.keras.Model):
                             f"with {list(self.n_hidden)} nodes, respectively."
             print(multiline_str)
 
-
-# ========== TENSORFLOW implementation ===============
-
-    # non-linear activation function
-    def activation(self,
-                   x,
-                   alpha,
-                   beta):
+    def activation(self, x: tf.Tensor, alpha: tf.Tensor, beta: tf.Tensor
+                   ) -> tf.Tensor:
         r"""
         Non-linear activation function
 
@@ -156,10 +148,11 @@ class cosmopower_NN(tf.keras.Model):
             Tensor:
                 the result of applying the non-linear activation function to the linear output of the layer
         """
-        return tf.multiply(tf.add(beta, tf.multiply(tf.sigmoid(tf.multiply(alpha, x)), tf.subtract(1.0, beta)) ), x)
+        return tf.multiply(tf.add(beta,
+                                  tf.multiply(tf.sigmoid(tf.multiply(alpha,
+                                                                     x)),
+                                              tf.subtract(1.0, beta))), x)
 
-
-    # tensor predictions
     @tf.function
     def predictions_tf(self,
                        parameters_tensor):
@@ -180,16 +173,13 @@ class cosmopower_NN(tf.keras.Model):
         outputs = []
         layers = [tf.divide(tf.subtract(parameters_tensor, self.parameters_mean), self.parameters_std)]
         for i in range(self.n_layers - 1):
-
             # linear network operation
             outputs.append(tf.add(tf.matmul(layers[-1], self.W[i]), self.b[i]))
-
             # non-linear activation function
             layers.append(self.activation(outputs[-1], self.alphas[i], self.betas[i]))
 
         # linear output layer
         layers.append(tf.add(tf.matmul(layers[-1], self.W[-1]), self.b[-1]))
-
         # rescale -> output predictions
         return tf.add(tf.multiply(layers[-1], self.features_std), self.features_mean)
 
@@ -686,8 +676,8 @@ class cosmopower_NN(tf.keras.Model):
         n_validation = int(n_samples * validation_split)
         n_training = int(n_samples) - n_validation
 
-        training_parameters = tf.convert_to_tensor(training_parameters, dtype = dtype)
-        training_features = tf.convert_to_tensor(training_features, dtype = dtype)
+        training_parameters = tf.convert_to_tensor(training_parameters, dtype=dtype)
+        training_features = tf.convert_to_tensor(training_features, dtype=dtype)
 
         # train using cooling/heating schedule for lr/batch-size
         for i in range(len(learning_rates)):
@@ -733,7 +723,7 @@ class cosmopower_NN(tf.keras.Model):
                         early_stopping_counter += 1
 
                     # update the progressbar
-                    t.set_postfix(loss = vloss, stuck = early_stopping_counter)
+                    t.set_postfix(loss=vloss, stuck=early_stopping_counter)
 
                     progress_file.write(f"{i}\t{learning_rates[i]:e}\t{batch_sizes[i]:d}\t{epoch:d}\t{vloss:f}\t{best_loss:f}\n")
                     progress_file.flush()

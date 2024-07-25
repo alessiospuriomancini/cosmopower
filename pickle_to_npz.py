@@ -1,3 +1,7 @@
+"""
+  This is a utility script to turn legacy .pkl files into .npz files.
+"""
+
 import pickle
 import numpy as np
 import argparse
@@ -20,13 +24,13 @@ if ext != "":
 with open(fn + ".pkl", "rb") as fp:
     if args.PCAplusNN:
         W, b, alphas, betas, parameters_mean, parameters_std, pca_mean, \
-        pca_std, features_mean, features_std, parameters, n_parameters, \
-        modes, n_modes, n_pcas, pca_transform_matrix, n_hidden, n_layers, \
-        architecture = pickle.load(fp)
+          pca_std, features_mean, features_std, parameters, n_parameters, \
+          modes, n_modes, n_pcas, pca_transform_matrix, n_hidden, n_layers, \
+          architecture = pickle.load(fp)
     else:
         W, b, alphas, betas, parameters_mean, parameters_std, features_mean, \
-        features_std, n_parameters, parameters, n_modes, modes, n_hidden, \
-        n_layers, architecture = pickle.load(fp)
+          features_std, n_parameters, parameters, n_modes, modes, n_hidden, \
+          n_layers, architecture = pickle.load(fp)
 
     attributes = {}
     attributes["architecture"] = architecture
