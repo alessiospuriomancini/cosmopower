@@ -14,8 +14,8 @@ def find_files(parser: YAMLParser, quantity: str) -> np.ndarray:
     """
     import glob
 
-    fn = os.path.join(parser.path, "spectra", quantity.replace("/", "_") +
-                      ".*.hdf5")
+    fn = os.path.join(parser.path, "spectra",
+                      quantity.replace("/", "_") + ".*.hdf5")
 
     return glob.glob(fn)
 
@@ -172,7 +172,7 @@ def show_validation(args: list = None) -> None:
         # 1, 2, and 3 sigma bands
         for k in range(3):
             percentiles[k, :] = np.percentile(diff, 100.0 - p[k], axis=0)
-            percentiles[k+3, :] = np.percentile(diff, p[k], axis=0)
+            percentiles[k + 3, :] = np.percentile(diff, p[k], axis=0)
 
         if nx > 1:
             ax = axes[j, i]
@@ -205,14 +205,14 @@ def show_validation(args: list = None) -> None:
 
         if i == 0:
             if args.noise_curve == "CVL":
-                ax.set_ylabel(r"$\Delta C_\ell \, / \, " +
-                              r"\sigma_{C_\ell,\mathrm{CVL}}$")
+                ax.set_ylabel(r"$\Delta C_\ell \, / \, \
+                                \sigma_{C_\ell,\mathrm{CVL}}$")
             elif args.noise_curve == "SO":
-                ax.set_ylabel(r"$\Delta C_\ell \, / \, " +
-                              r"\sigma_{C_\ell,\mathrm{SO}}$")
+                ax.set_ylabel(r"$\Delta C_\ell \, / \, \
+                                \sigma_{C_\ell,\mathrm{SO}}$")
             else:
-                ax.set_ylabel(r"$\Delta C_\ell \, / \, " +
-                              r"C_\ell^\mathrm{theory}$")
+                ax.set_ylabel(r"$\Delta C_\ell \, / \, \
+                                C_\ell^\mathrm{theory}$")
 
         if args.noise_curve == "":
             ax.set_yticklabels(["{:,.2%}".format(x) for x in ax.get_yticks()])
@@ -289,8 +289,8 @@ def show_validation(args: list = None) -> None:
 
         ax.boxplot(diff, conf_intervals=conf)
         ax.axhline(0.0, c="r", lw=1, ls="--")
-        ax.set_ylabel(r"$( x_\mathrm{pred} - x_\mathrm{true} ) \, / \, " +
-                      r"x_\mathrm{true}$")
+        ax.set_ylabel(r"$( x_\mathrm{pred} - x_\mathrm{true} ) \, / \, \
+                        x_\mathrm{true}$")
         ax.set_yticklabels(["{:,.1%}".format(x) for x in ax.get_yticks()])
 
         ax = axes[1]
@@ -301,16 +301,16 @@ def show_validation(args: list = None) -> None:
         for i, _ in enumerate(parser.computed_parameters):
             diff = np.abs(pred[:, i] - data[:, i]) / data[:, i]
 
-            ax.bar(i+1, np.percentile(diff, 68.0), alpha=0.9, color=f"C{i}",
+            ax.bar(i + 1, np.percentile(diff, 68.0), alpha=0.9, color=f"C{i}",
                    lw=2)
-            ax.bar(i+1, np.percentile(diff, 95.0), alpha=0.6, color=f"C{i}",
+            ax.bar(i + 1, np.percentile(diff, 95.0), alpha=0.6, color=f"C{i}",
                    lw=1)
-            ax.bar(i+1, np.percentile(diff, 99.0), alpha=0.3, color=f"C{i}",
+            ax.bar(i + 1, np.percentile(diff, 99.0), alpha=0.3, color=f"C{i}",
                    lw=1)
 
         ax.semilogy()
-        ax.set_ylabel(r"$| x_\mathrm{pred} - x_\mathrm{true} | \, / \, " +
-                      r"x_\mathrm{true}$")
+        ax.set_ylabel(r"$| x_\mathrm{pred} - x_\mathrm{true} | \, / \, \
+                        x_\mathrm{true}$")
 
         ax.set_xticks(1 + np.arange(len(parser.computed_parameters)))
         ax.set_xticklabels(parser.computed_parameters)

@@ -342,7 +342,7 @@ def show_validation(args: Optional[list] = None) -> None:
         # 1, 2, and 3 sigma bands
         for k in range(3):
             percentiles[k, :] = np.percentile(diff, 100.0 - p[k], axis=0)
-            percentiles[k+3, :] = np.percentile(diff, p[k], axis=0)
+            percentiles[k + 3, :] = np.percentile(diff, p[k], axis=0)
 
         if nx > 1:
             ax = axes[j, i]
@@ -371,9 +371,9 @@ def show_validation(args: Optional[list] = None) -> None:
         ax.set_xticks([])
 
         if nx > 1:
-            ax = axes[j+1, i]
+            ax = axes[j + 1, i]
         else:
-            ax = axes[j+1]
+            ax = axes[j + 1]
 
         percentiles = np.zeros((3, diff.shape[1]))
         # 1, 2, and 3 sigma bands
@@ -421,9 +421,9 @@ def show_validation(args: Optional[list] = None) -> None:
         fig.delaxes(ax)
 
         if nx > 1:
-            ax = axes[j+1, i]
+            ax = axes[j + 1, i]
         else:
-            ax = axes[j+1]
+            ax = axes[j + 1]
 
         fig.delaxes(ax)
 
@@ -497,11 +497,11 @@ def show_validation(args: Optional[list] = None) -> None:
         for i, _ in enumerate(parser.computed_parameters):
             diff = np.abs(pred[:, i] - data[:, i]) / data[:, i]
 
-            ax.bar(i+1, np.percentile(diff, 68.0), alpha=0.9, color=f"C{i}",
+            ax.bar(i + 1, np.percentile(diff, 68.0), alpha=0.9, color=f"C{i}",
                    lw=2)
-            ax.bar(i+1, np.percentile(diff, 95.0), alpha=0.6, color=f"C{i}",
+            ax.bar(i + 1, np.percentile(diff, 95.0), alpha=0.6, color=f"C{i}",
                    lw=1)
-            ax.bar(i+1, np.percentile(diff, 99.0), alpha=0.3, color=f"C{i}",
+            ax.bar(i + 1, np.percentile(diff, 99.0), alpha=0.3, color=f"C{i}",
                    lw=1)
 
         ax.semilogy()

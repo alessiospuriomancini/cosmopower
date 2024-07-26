@@ -165,9 +165,9 @@ def get_noise_curves_SO(parser: YAMLParser, spectra: dict,
         NellEE[idx] = EE_Nell[jdx]
 
         prefac = np.sqrt(1.0 / (f_sky * (2.0 * TE_modes + 1.0)))
-        tot_spec = np.sqrt((spectra["Cl/te"] * spectra["Cl/te"]) +
-                           (spectra["Cl/tt"] + NellTT) *
-                           (spectra["Cl/ee"] + NellEE))
+        tot_spec = np.sqrt((spectra["Cl/te"] * spectra["Cl/te"])
+                           + (spectra["Cl/tt"] + NellTT)
+                           * (spectra["Cl/ee"] + NellEE))
 
         results["Cl/te"] = prefac * tot_spec
 

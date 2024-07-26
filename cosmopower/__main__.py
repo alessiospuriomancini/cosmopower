@@ -12,15 +12,15 @@ commands = {
     "show-validation": ("validate", "show_validation"),
 }
 
-helpmsg = "Command '{0:s}' not known. Try one of:\n\t" + \
-          ", ".join(sorted(commands.keys()))
+helpmsg = ("Command '{0:s}' not known. Try one of:\n\t"
+           + ", ".join(sorted(commands.keys())))
 
 if __name__ == "__main__":
     try:
         cmd = sys.argv[1].lower()
     except IndexError:
-        print("Try:\n\tcosmopower <command> -h\nWhere <command> is one of " +
-              ", ".join(sorted(commands.keys())))
+        print("Try:\n\tcosmopower <command> -h\nWhere <command> is one of "
+              + ", ".join(sorted(commands.keys())))
         exit()
     else:
         if cmd == "help":

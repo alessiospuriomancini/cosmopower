@@ -125,12 +125,12 @@ def add_derived_params(parser: YAMLParser, parameters: dict) -> dict:
 
         val = parser.parameter_value(param)
 
-        if type(val) == str:
+        if type(val) is str:
             lambda_function = eval(val)
             inputs = [parameters[i]
                       for i in lambda_function.__code__.co_varnames]
             parameters[param] = lambda_function(*inputs)
-        elif type(val) == float:
+        elif type(val) is float:
             parameters[param] = np.tile(val, (parser.nsamples,))
 
     return parameters
@@ -155,17 +155,17 @@ def augment_parameter_lhc(lhc: dict, parser: YAMLParser) -> dict:
         for param in (parser.sampled_parameters + parser.input_parameters):
             val = parser.parameter_value(param)
 
-            if type(val) == tuple:
+            if type(val) is tuple:
                 oldrange = np.sort(lhc[param])
                 lhc_new[param] = (oldrange[1:] + oldrange[:-1]) / 2.0
-            elif type(val) == float:
-                lhc_new[param] = np.tile(val, (n-1,))
+            elif type(val) is float:
+                lhc_new[param] = np.tile(val, (n - 1,))
             else:
                 reparse[param] = val
 
-        lhc_idx = pyDOE.lhs(len(parser.sampled_parameters), n-1,
+        lhc_idx = pyDOE.lhs(len(parser.sampled_parameters), n - 1,
                             criterion=None)
-        lhc_idx = (lhc_idx * (n-1)).astype(int)
+        lhc_idx = (lhc_idx * (n - 1)).astype(int)
 
         lhc_new = {par: lhc_new[par][lhc_idx[:, i]]
                    for i, par in enumerate(parser.input_parameters)}
@@ -379,8 +379,8 @@ def generate_spectra(args: list = None) -> None:
     Barrier()
 
     for n in tbar:
-        tbar.set_description(("" if MPI is None else f"[{rank}] ") +
-                             f"{accepted/n:.1%} success rate")
+        tbar.set_description(("" if MPI is None else f"[{rank}] ")
+                             + f"{accepted/n:.1%} success rate")
 
         boltzmann_params = {k: samples[k][n] for k in parser.boltzmann_inputs}
         quantities_to_be_computed = []

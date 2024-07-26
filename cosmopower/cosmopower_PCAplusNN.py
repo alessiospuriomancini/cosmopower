@@ -76,8 +76,8 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             self.n_hidden = n_hidden
 
             # architecture
-            self.architecture = [self.n_parameters] + self.n_hidden + \
-                                [self.n_pcas]
+            self.architecture = ([self.n_parameters] + self.n_hidden
+                                 + [self.n_pcas])
             self.n_layers = len(self.architecture) - 1
 
             # standardisation
@@ -129,19 +129,20 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         self.alphas = []
         self.betas = []
         for i in range(self.n_layers):
-            self.W.append(tf.Variable(tf.random.normal([
-                    self.architecture[i], self.architecture[i+1]
-                ], 0., np.sqrt(2./self.n_parameters)), name="W_" + str(i),
-                trainable=trainable))
-            self.b.append(tf.Variable(tf.zeros([self.architecture[i+1]]),
+            self.W.append(tf.Variable(
+                tf.random.normal([
+                    self.architecture[i], self.architecture[i + 1]
+                ], 0.0, np.sqrt(2.0 / self.n_parameters)),
+                name="W_" + str(i), trainable=trainable))
+            self.b.append(tf.Variable(tf.zeros([self.architecture[i + 1]]),
                                       name="b_" + str(i),
                                       trainable=trainable))
-        for i in range(self.n_layers-1):
+        for i in range(self.n_layers - 1):
             self.alphas.append(tf.Variable(
-                tf.random.normal([self.architecture[i+1]]),
+                tf.random.normal([self.architecture[i + 1]]),
                 name="alphas_" + str(i), trainable=trainable))
             self.betas.append(tf.Variable(
-                tf.random.normal([self.architecture[i+1]]),
+                tf.random.normal([self.architecture[i + 1]]),
                 name="betas_" + str(i), trainable=trainable))
 
         # restore weights if restoring
@@ -149,7 +150,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             for i in range(self.n_layers):
                 self.W[i].assign(self.W_[i])
                 self.b[i].assign(self.b_[i])
-            for i in range(self.n_layers-1):
+            for i in range(self.n_layers - 1):
                 self.alphas[i].assign(self.alphas_[i])
                 self.betas[i].assign(self.betas_[i])
 
@@ -279,8 +280,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         # put network parameters to numpy arrays
         self.W_ = [self.W[i].numpy() for i in range(self.n_layers)]
         self.b_ = [self.b[i].numpy() for i in range(self.n_layers)]
-        self.alphas_ = [self.alphas[i].numpy() for i in range(self.n_layers-1)]
-        self.betas_ = [self.betas[i].numpy() for i in range(self.n_layers-1)]
+        self.alphas_ = [
+            self.alphas[i].numpy() for i in range(self.n_layers - 1)
+        ]
+        self.betas_ = [self.betas[i].numpy() for i in range(self.n_layers - 1)]
 
         # put shift and scale parameters to numpy arrays
         self.parameters_mean_ = self.parameters_mean.numpy()
@@ -325,7 +328,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         for i in range(self.n_layers):
             attributes[f"W_{i}"] = self.W[i].numpy()
             attributes[f"b_{i}"] = self.b[i].numpy()
-        for i in range(self.n_layers-1):
+        for i in range(self.n_layers - 1):
             attributes[f"alphas_{i}"] = self.alphas[i].numpy()
             attributes[f"betas_{i}"] = self.betas[i].numpy()
 
@@ -358,10 +361,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 self.restore_pickle(filename_pkl)
                 return
 
-            raise IOError(f"Failed to restore network from {filename}: " +
-                          (" is a pickle file, try setting 'allow_pickle = \
-                            True'" if os.path.exists(filename_pkl) else
-                           " does not exist."))
+            raise IOError(f"Failed to restore network from {filename}: "
+                          + (" is a pickle file, try setting 'allow_pickle = \
+                              True'" if os.path.exists(filename_pkl) else
+                             " does not exist."))
 
         with open(filename_npz, "rb") as fp:
             fpz = np.load(fp)
@@ -387,8 +390,10 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 
             self.W_ = [fpz[f"W_{i}"] for i in range(self.n_layers)]
             self.b_ = [fpz[f"b_{i}"] for i in range(self.n_layers)]
-            self.alphas_ = [fpz[f"alphas_{i}"] for i in range(self.n_layers-1)]
-            self.betas_ = [fpz[f"betas_{i}"] for i in range(self.n_layers-1)]
+            self.alphas_ = [
+                fpz[f"alphas_{i}"] for i in range(self.n_layers - 1)
+            ]
+            self.betas_ = [fpz[f"betas_{i}"] for i in range(self.n_layers - 1)]
 
     def restore_pickle(self, filename: str) -> None:
         r"""
@@ -411,9 +416,9 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         import pickle
         with open(filename, "rb") as fp:
             W, b, alphas, betas, parameters_mean, parameters_std, pca_mean, \
-              pca_std, features_mean, features_std, parameters, n_parameters, \
-              modes, n_modes, n_pcas, pca_transform_matrix, n_hidden, \
-              n_layers, architecture = pickle.load(fp)
+                pca_std, features_mean, features_std, parameters, \
+                n_parameters, modes, n_modes, n_pcas, pca_transform_matrix, \
+                n_hidden, n_layers, architecture = pickle.load(fp)
 
         self.architecture = architecture
         self.n_layers = n_layers
@@ -436,8 +441,8 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 
         self.W_ = [W[i] for i in range(self.n_layers)]
         self.b_ = [b[i] for i in range(self.n_layers)]
-        self.alphas_ = [alphas[i] for i in range(self.n_layers-1)]
-        self.betas_ = [betas[i] for i in range(self.n_layers-1)]
+        self.alphas_ = [alphas[i] for i in range(self.n_layers - 1)]
+        self.betas_ = [betas[i] for i in range(self.n_layers - 1)]
 
     # auxiliary function to sort input parameters
     def dict_to_ordered_arr_np(self,
@@ -480,15 +485,14 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             (parameters_arr - self.parameters_mean_) / self.parameters_std_
         ]
 
-        for i in range(self.n_layers-1):
-
+        for i in range(self.n_layers - 1):
             # linear network operation
             act.append(np.dot(layers[-1], self.W_[i]) + self.b_[i])
 
             # pass through activation function
-            layers.append((self.betas_[i] + (1.0 - self.betas_[i]) * 1.0 /
-                           (1.0 + np.exp(-self.alphas_[i] * act[-1]))) *
-                          act[-1])
+            layers.append((self.betas_[i] + (1.0 - self.betas_[i]) * 1.0
+                           / (1.0 + np.exp(-self.alphas_[i] * act[-1])))
+                          * act[-1])
 
         # final (linear) layer -> (normalized) PCA coefficients
         layers.append(np.dot(layers[-1], self.W_[-1]) + self.b_[-1])
@@ -496,9 +500,9 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         # rescale PCA coefficients, multiply out PCA basis -> normalised
         # (log)-spectrum, shift and re-scale (log)-spectrum -> output
         # (log)-spectrum
-        return np.dot(layers[-1]*self.pca_std_ + self.pca_mean_,
-                      self.pca_transform_matrix_) * self.features_std_ + \
-               self.features_mean_  # noqa E127
+        return (np.dot(layers[-1] * self.pca_std_ + self.pca_mean_,
+                       self.pca_transform_matrix_) * self.features_std_
+                + self.features_mean_)
 
     def predictions_np(self, parameters_dict: dict) -> np.ndarray:
         r"""
@@ -551,11 +555,12 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 mean squared difference
         """
         return tf.sqrt(
-          tf.reduce_mean(
-            tf.math.squared_difference(
-              self.forward_pass_tf(training_parameters, training=training),
-              training_pca)
-          )
+            tf.reduce_mean(
+                tf.math.squared_difference(
+                    self.forward_pass_tf(training_parameters,
+                                         training=training),
+                    training_pca)
+            )
         )
 
     @tf.function
@@ -582,11 +587,12 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 
             # loss
             loss = tf.sqrt(
-              tf.reduce_mean(
-                tf.math.squared_difference(
-                  self.forward_pass_tf(training_parameters, training=training),
-                  training_pca)
-              )
+                tf.reduce_mean(
+                    tf.math.squared_difference(
+                        self.forward_pass_tf(training_parameters,
+                                             training=training),
+                        training_pca)
+                )
             )
 
         # compute gradients
@@ -642,7 +648,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         """
         # create dataset to do sub-calculations over
         dataset = tf.data.Dataset.from_tensor_slices(
-          (training_parameters, training_pca)
+            (training_parameters, training_pca)
         ).batch(int(training_pca.shape[0] / accumulation_steps))
 
         # initialize gradients and loss (to zero)
@@ -653,20 +659,20 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 
         # loop over sub-batches
         for training_parameters_, training_pca_ in dataset:
-
             # calculate loss and gradients
             loss, gradients = self.compute_loss_and_gradients(
-              training_parameters_, training_pca_, training=True
+                training_parameters_, training_pca_, training=True
             )
 
             # update the accumulated gradients and loss
             for i in range(len(accumulated_gradients)):
                 accumulated_gradients[i].assign_add(
-                  gradients[i] * training_pca_.shape[0] / training_pca.shape[0]
+                    gradients[i] * training_pca_.shape[0]
+                    / training_pca.shape[0]
                 )
 
             accumulated_loss.assign_add(
-              loss * training_pca_.shape[0] / training_pca.shape[0]
+                loss * training_pca_.shape[0] / training_pca.shape[0]
             )
 
             # apply accumulated gradients
@@ -705,14 +711,14 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                 maximum number of epochs for each step of learning schedule
         """
         n_iter = len(learning_rates)
-        if type(batch_sizes) != list:
+        if type(batch_sizes) is not list:
             batch_sizes = n_iter * [batch_sizes]
-        if type(gradient_accumulation_steps) != list:
-            gradient_accumulation_steps = n_iter * \
-                                          [gradient_accumulation_steps]
-        if type(patience_values) != list:
+        if type(gradient_accumulation_steps) is not list:
+            gradient_accumulation_steps = (n_iter
+                                           * [gradient_accumulation_steps])
+        if type(patience_values) is not list:
             patience_values = n_iter * [patience_values]
-        if type(max_epochs) != list:
+        if type(max_epochs) is not list:
             max_epochs = n_iter * [max_epochs]
 
         # check correct number of steps
@@ -782,14 +788,15 @@ class cosmopower_PCAplusNN(tf.keras.Model):
 
             for n in range(self.cp_pca.n_batches):
                 normalized_features = (
-                  training_features[n::self.cp_pca.n_batches] -
-                  self.cp_pca.features_mean
+                    training_features[n::self.cp_pca.n_batches]
+                    - self.cp_pca.features_mean
                 ) / self.cp_pca.features_std
+
                 self.cp_pca.PCA.partial_fit(normalized_features)
 
             training_pca = self.cp_pca.PCA.transform(
-              (training_features - self.cp_pca.features_mean) /
-              self.cp_pca.features_std
+                (training_features - self.cp_pca.features_mean)
+                / self.cp_pca.features_std
             )
 
             self.cp_pca.pca_mean = np.mean(training_pca)
@@ -831,8 +838,8 @@ class cosmopower_PCAplusNN(tf.keras.Model):
         n_training = int(n_samples) - n_validation
 
         training_pca = self.cp_pca.PCA.transform(
-             (training_features - self.cp_pca.features_mean) /
-             self.cp_pca.features_std)
+            (training_features - self.cp_pca.features_mean)
+            / self.cp_pca.features_std)
         training_parameters = tf.convert_to_tensor(training_parameters,
                                                    dtype=dtype)
         training_pca = tf.convert_to_tensor(training_pca, dtype=dtype)
@@ -847,8 +854,8 @@ class cosmopower_PCAplusNN(tf.keras.Model):
             self.optimizer.lr = learning_rates[i]
 
             # split into validation and training sub-sets
-            split = tf.random.shuffle([True] * n_training +
-                                      [False] * n_validation)
+            split = tf.random.shuffle([True] * n_training
+                                      + [False] * n_validation)
 
             # create iterable dataset (given batch size)
             training_data = tf.data.Dataset.from_tensor_slices(
@@ -876,7 +883,8 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                         else:
                             loss = self.training_step_with_accumulated_gradients(  # noqa E501
                                 theta, pca,
-                                accumulation_steps=gradient_accumulation_steps[i])  # noqa E501
+                                accumulation_steps=gradient_accumulation_steps[i]  # noqa E501
+                            )
 
                     # compute validation loss at the end of the epoch
                     vloss = self.compute_loss(validation_parameters,
@@ -891,7 +899,7 @@ class cosmopower_PCAplusNN(tf.keras.Model):
                         early_stopping_counter += 1
 
                     # update the progressbar
-                    t.set_postfix(loss=best_loss)
+                    t.set_postfix(loss=vloss, stuck=early_stopping_counter)
 
                     progress_file.write(f"{i}\t{learning_rates[i]:e}\t\
                                           {batch_sizes[i]:d}\t{epoch:d}\t\

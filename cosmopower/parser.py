@@ -8,9 +8,9 @@ from .cosmopower_PCAplusNN import cosmopower_PCAplusNN
 from .cosmopower_NN import cosmopower_NN
 
 NETWORK_CLASSES = {
-  "NN": cosmopower_NN,
-  "PCA": cosmopower_PCA,
-  "PCAplusNN": cosmopower_PCAplusNN
+    "NN": cosmopower_NN,
+    "PCA": cosmopower_PCA,
+    "PCAplusNN": cosmopower_PCAplusNN
 }
 
 
@@ -334,8 +334,8 @@ class YAMLParser:
         """
         All parameters (input, derived, and computed).
         """
-        return (self.input_parameters + self.derived_parameters +
-                self.computed_parameters)
+        return (self.input_parameters + self.derived_parameters
+                + self.computed_parameters)
 
     @property
     def allow_pickle(self) -> bool:

@@ -167,7 +167,7 @@ class Dataset:
         :return: The parameters associated with the requested indices."""
         self.check_open()
 
-        cast_1d = (type(indices) == int)
+        cast_1d = (type(indices) is int)
         indices = np.atleast_1d(indices)
 
         entries = np.where(np.in1d(self.file["data"]["indices"][:],
@@ -190,7 +190,7 @@ class Dataset:
         :return: The spectra associated with the requested indices."""
         self.check_open()
 
-        cast_1d = (type(indices) == int)
+        cast_1d = (type(indices) is int)
         indices = np.atleast_1d(indices)
 
         entries = np.where(np.in1d(self.file["data"]["indices"][:],

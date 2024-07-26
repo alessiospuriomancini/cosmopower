@@ -127,8 +127,8 @@ def get_camb_angular_diameter_distance(pars: camb.CAMBparams,
 def get_camb_Omega(pars: camb.CAMBparams, results: camb.CAMBdata,
                    redshifts: Sequence[float], var: str) -> np.ndarray:
     if var == "m":
-        return results.get_Omega(var="baryon", z=redshifts) + \
-               results.get_Omega(var="cdm", z=redshifts)
+        return (results.get_Omega(var="baryon", z=redshifts)
+                + results.get_Omega(var="cdm", z=redshifts))
 
     return results.get_Omega(var=var, z=redshifts)
 
@@ -163,10 +163,10 @@ def get_camb_linear_matter_power(camb: ModuleType, pars: camb.CAMBparams,
         pars.set_matter_power(redshifts=z, kmax=kmax)
         results = camb.get_results(pars)
 
-    _, _, pk = results.get_matter_power_spectrum(minkh=k.min() /
-                                                 (pars.H0 / 100.0),
-                                                 maxkh=k.max() /
-                                                 (pars.H0 / 100.0),
+    _, _, pk = results.get_matter_power_spectrum(minkh=(k.min()
+                                                 / (pars.H0 / 100.0)),
+                                                 maxkh=(k.max()
+                                                 / (pars.H0 / 100.0)),
                                                  npoints=len(k))
 
     return pk[0, :]
@@ -181,10 +181,10 @@ def get_camb_nonlinear_matter_power(camb: ModuleType, pars: camb.CAMBparams,
         pars.set_matter_power(redshifts=z, kmax=kmax)
         results = camb.get_results(pars)
 
-    _, _, pk = results.get_matter_power_spectrum(minkh=k.min() /
-                                                 (pars.H0 / 100.0),
-                                                 maxkh=k.max() /
-                                                 (pars.H0 / 100.0),
+    _, _, pk = results.get_matter_power_spectrum(minkh=(k.min()
+                                                 / (pars.H0 / 100.0)),
+                                                 maxkh=(k.max()
+                                                 / (pars.H0 / 100.0)),
                                                  npoints=len(k))
 
     return pk[0, :]
@@ -202,10 +202,10 @@ def get_camb_nonlinear_matter_power_boost(camb: ModuleType,
         pars.set_matter_power(redshifts=z, kmax=kmax)
         results = camb.get_results(pars)
 
-    _, _, pk = results.get_matter_power_spectrum(minkh=k.min() /
-                                                 (pars.H0 / 100.0),
-                                                 maxkh=k.max() /
-                                                 (pars.H0 / 100.0),
+    _, _, pk = results.get_matter_power_spectrum(minkh=(k.min()
+                                                 / (pars.H0 / 100.0)),
+                                                 maxkh=(k.max()
+                                                 / (pars.H0 / 100.0)),
                                                  npoints=len(k))
 
     return pk[0, :] / pk_lin - 1.0
