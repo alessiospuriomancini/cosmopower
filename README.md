@@ -40,7 +40,7 @@ Comprehensive documentation is available [here](https://alessiospuriomancini.git
 We recommend installing ``CosmoPower`` within a [Conda](https://docs.conda.io/projects/conda/en/latest/index.html) virtual environment. 
 For example, to create and activate an environment called ``cp_env``, use:
 
-    conda create -n cp_env python=3.7 pip && conda activate cp_env
+    conda create -n cp_env python=3.11 pip && conda activate cp_env
 
 Once inside the environment, you can install ``CosmoPower``:
 
