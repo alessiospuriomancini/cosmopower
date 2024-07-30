@@ -6,7 +6,7 @@ from .dataset import Dataset  # noqa: F401
 from .likelihoods import *  # noqa: F401, F403
 from .util import *  # noqa: F401, F403
 
-__version__ = "2.0.0"
+__version__ = "0.2.0"
 __author__ = "Alessio Spurio Mancini, Hidde Jense, and Ian Harrison"
 
 

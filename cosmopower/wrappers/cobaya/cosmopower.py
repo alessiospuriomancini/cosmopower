@@ -344,21 +344,17 @@ class CosmoPower(BoltzmannBase):
         return []
 
     def find_translation(self, p: str) -> str:
-        """
-        Checks if a parameter can be renamed, and returns the source param if
-        so. In other words, if find_translation(p) == q, then
-        translate_param(q) = p.
-        """
+        """Checks if a parameter can be renamed, and returns the source param
+        if so. In other words, if find_translation(p) == q, then
+        translate_param(q) = p."""
         for k, v in self.renames.items():
             if v == p:
                 return k
         return p
 
     def translate_param(self, p: str) -> str:
-        """
-        Checks if a parameter needs to be renamed, and returns the renamed
-        param if so.
-        """
+        """Checks if a parameter needs to be renamed, and returns the renamed
+        param if so."""
         return self.renames.get(p, p)
 
     @property
@@ -367,7 +363,5 @@ class CosmoPower(BoltzmannBase):
 
     @property
     def parser(self) -> cp.YAMLParser:
-        """
-        The yaml parser used by this wrapper.
-        """
+        """The yaml parser used by this wrapper."""
         return self._parser
