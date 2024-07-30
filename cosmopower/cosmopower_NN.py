@@ -5,7 +5,7 @@ import os
 import warnings
 import numpy as np
 import tensorflow as tf
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Union
 from tqdm import trange
 from .dataset import Dataset
 dtype = tf.float32

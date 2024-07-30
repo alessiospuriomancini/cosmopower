@@ -8,3 +8,9 @@ from .util import *  # noqa: F401, F403
 
 __version__ = "2.0.0"
 __author__ = "Alessio Spurio Mancini, Hidde Jense, and Ian Harrison"
+
+
+def get_cobaya_class():
+    """Utility function for Cobaya to find the CosmoPower wrapper class."""
+    from wrappers.cobaya.cosmopower import CosmoPower
+    return CosmoPower
