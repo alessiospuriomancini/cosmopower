@@ -206,7 +206,7 @@ If you use ``CosmoPower`` at any point in your work please cite its [release pap
              pages={1771–1788}
              }
 
-If you use a specific likelihood or trained model then in addition to the [release paper](https://arxiv.org/abs/2106.03846) please _also_ cite their relevant papers (always listed in the corresponding directory).
+If you use a specific likelihood or trained model then in addition to the [release paper](https://arxiv.org/abs/2106.03846) please _also_ cite their relevant papers (always listed in the corresponding directory). If you use the custom activation function implemented in the code please also cite [Alsing et al.(2020)](https://doi.org/10.3847/1538-4365/ab917f).
 
 
 # License
