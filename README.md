@@ -27,7 +27,7 @@
 
 In cosmology, ``CosmoPower`` aims to become a fully _differentiable_ library for cosmological analyses. Currently, ``CosmoPower`` provides neural network emulators of matter and Cosmic Microwave Background power spectra. These emulators can be used to replace Boltzmann codes such as [CAMB](https://github.com/cmbant/CAMB) or [CLASS](https://github.com/lesgourg/class_public) in cosmological inference pipelines, to source the power spectra needed for two-point statistics analyses. This provides orders-of-magnitude acceleration to the inference pipeline and integrates naturally with efficient techniques for sampling very high-dimensional parameter spaces. The power spectra emulators implemented in `CosmoPower`, and first presented in its [release paper](https://arxiv.org/abs/2106.03846), have been applied to the analysis of real cosmological data from  experiments, as well as having been tested against the accuracy requirements for the analysis of next-generation cosmological surveys.
 
-``CosmoPower`` is written entirely in [Python](https://www.python.org/). Neural networks are implemented using the [TensorFlow](https://www.tensorflow.org/) library.
+``CosmoPower`` is written entirely in [Python](https://www.python.org/). Neural networks are implemented using the [TensorFlow](https://www.tensorflow.org/) library. Please check out [COSMOPOWER-JAX](https://github.com/dpiras/cosmopower-jax) for a [JAX](https://github.com/google/jax)-based version.
 
 
 # Documentation
