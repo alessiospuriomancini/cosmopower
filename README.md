@@ -44,9 +44,15 @@ For example, to create and activate an environment called ``cp_env``, use:
 
 Once inside the environment, you can install ``CosmoPower``:
 
-- **from PyPI**
+- **from PyPI or conda-forge**
 
         pip install cosmopower
+
+    or
+
+        conda install -c conda-forge cosmopower
+
+    (kudos to [@joezuntz](https://github.com/joezuntz) for the conda-forge package).
 
     To test the installation, you can use
 
