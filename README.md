@@ -83,11 +83,11 @@ CosmoPower currently provides two ways to emulate power spectra, implemented in 
  <tr>
     <td>a neural network mapping cosmological parameters directly to (log)-power spectra
 <div align="center">
-<img src='https://github.com/alessiospuriomancini/cosmopower/blob/main/docs/static/nn_scheme-1.png' height="250" style="width: auto;">
+<img src='https://github.com/alessiospuriomancini/cosmopower/blob/main/docs/static/nn_scheme-1.png' height="200" style="width: auto;">
 </div>
 </td>
     <td>a neural network mapping cosmological parameters to coefficients of a Principal Component Analysis (PCA) of the (log)-power spectra<div align="center">
-<img src='https://github.com/alessiospuriomancini/cosmopower/blob/main/docs/static/pca_nn_scheme-1.png' height="250" style="width: auto;">
+<img src='https://github.com/alessiospuriomancini/cosmopower/blob/main/docs/static/pca_nn_scheme-1.png' height="200" style="width: auto;">
 </div>
 </td>
  </tr>
