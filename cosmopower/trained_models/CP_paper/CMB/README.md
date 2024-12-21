@@ -4,12 +4,12 @@
 
 | Parameter  | Range |
 | ---------  | ----- |
-| <img src="https://render.githubusercontent.com/render/math?math=\omega_{\mathrm{b}}"> | <img src="https://render.githubusercontent.com/render/math?math=[0.005, 0.04]"> |
-| <img src="https://render.githubusercontent.com/render/math?math=\omega_{\mathrm{cdm}}"> | <img src="https://render.githubusercontent.com/render/math?math=[0.001, 0.99]"> |
-| <img src="https://render.githubusercontent.com/render/math?math=h"> | <img src="https://render.githubusercontent.com/render/math?math=[0.2, 1.0]"> |
-| <img src="https://render.githubusercontent.com/render/math?math=\tau_{\mathrm{reio}}"> | <img src="https://render.githubusercontent.com/render/math?math=[0.01, 0.8]"> |
-| <img src="https://render.githubusercontent.com/render/math?math=n_s"> | <img src="https://render.githubusercontent.com/render/math?math=[0.7, 1.3]"> |
-| <img src="https://render.githubusercontent.com/render/math?math=\mathrm{ln}10^{10}A_s"> | <img src="https://render.githubusercontent.com/render/math?math=[1.61, 5]"> |
+| <img src="https://latex.codecogs.com/gif.latex?\omega_{\mathrm{b}}"> | [0.005, 0.04] |
+| <img src="https://latex.codecogs.com/gif.latex?\omega_{\mathrm{cdm}}"> | [0.001, 0.99] |
+| <img src="https://latex.codecogs.com/gif.latex?h"> | [0.2, 1.0] |
+| <img src="https://latex.codecogs.com/gif.latex?\tau_{\mathrm{reio}}"> | [0.01, 0.8] |
+| <img src="https://latex.codecogs.com/gif.latex?n_{\mathrm{s}}"> | [0.7, 1.3] |
+| <img src="https://latex.codecogs.com/gif.latex?\mathrm{ln}10^{10}A_{\mathrm{s}}"> | [1.61, 5] |
 
 
 ## Features
