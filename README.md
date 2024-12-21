@@ -166,7 +166,7 @@ The [training_notebooks](https://github.com/alessiospuriomancini/cosmopower/blob
 
 - [train ``cosmopower_PCAplusNN``](https://github.com/alessiospuriomancini/cosmopower/blob/main/notebooks/training_notebooks/cosmopower_PCAplusNN_CMB_training.ipynb): [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1G8vABcUk9yztXYDx8bDFaNhJrtVIA5ei?usp=sharing)
 
-These notebooks implement emulation of CMB temperature (TT) and lensing potential (<img src="https://render.githubusercontent.com/render/math?math=\phi \phi">)
+These notebooks implement emulation of CMB temperature (TT) and lensing potential (<img src="https://latex.codecogs.com/gif.latex?\phi\phi">)
  power spectra as practical examples - the procedure is completely analogous for the matter power spectrum.
 
 
