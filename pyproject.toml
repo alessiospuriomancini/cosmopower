@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cosmopower"
+dynamic = ["version"]
+description = "Machine Learning - accelerated Bayesian inference for cosmological observables"
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+license = { text = "GPL-3.0-only" }
+authors = [
+  { name = "Alessio Spurio Mancini" }
+]
+urls = { Homepage = "https://github.com/alessiospuriomancini/cosmopower" }
+
+dependencies = [
+  "numpy==1.24.3",
+  "scikit-learn>=1.2,<1.6",
+  "tqdm>=4.60",
+  "gdown>=4.0",
+  "matplotlib>=3.7,<3.10",
+  "pyDOE>=0.3",
+  "tensorflow==2.13.1",
+  "tensorflow-probability==0.21.0",
+  "ml-dtypes==0.2.0",
+  "typing_extensions==4.5.0",
+]
+
+[project.optional-dependencies]
+notebook = [
+  "jupyterlab==4.2.7",
+  "notebook==7.2.2",
+  "ipykernel==6.29.5",
+  "ipython==8.22.2",
+]
+docs = [
+  "mkdocs-material>=9,<10",
+  "mkdocstrings[python]>=0.24,<1",
+]
+dev = [
+  "pytest>=7,<9",
+  "build>=1,<2",
+  "twine>=5,<6",
+  "ruff>=0.5,<1",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "cosmopower.__version__" }
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["cosmopower*"]
+
+[tool.pytest.ini_options]
+testpaths = ["cosmopower"]

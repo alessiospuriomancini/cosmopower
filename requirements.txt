@@ -1,11 +1,2 @@
-scikit-learn
-tqdm
-gdown
-jupyter
-mkdocs-material
-mkdocstrings
-matplotlib
-pytest
-pyDOE
-tensorflow<2.14
-tensorflow_probability<0.22
+-e .[notebook,docs,dev]
+-c constraints-py310-tf213.txt

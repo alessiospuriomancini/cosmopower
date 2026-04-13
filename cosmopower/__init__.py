@@ -3,5 +3,5 @@ from .cosmopower_PCAplusNN import cosmopower_PCAplusNN
 from .cosmopower_NN import cosmopower_NN
 from .likelihoods import *
 
-__version__ = "0.1.3"
+__version__ = "0.2.0"
 __author__ = 'Alessio Spurio Mancini'
