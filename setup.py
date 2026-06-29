@@ -19,10 +19,12 @@ def read_file(file):
 long_description = read_file("README.md")
 
 # Determine whether the system is M1/M2 Mac
-if 'arm' in os.uname().machine:
-    tensorflow = 'tensorflow-metal'
-else:
-    tensorflow = 'tensorflow<2.14'
+# if 'arm' in os.uname().machine:
+#     tensorflow = 'tensorflow-metal'
+# else:
+#     tensorflow = 'tensorflow<2.14'
+
+tensorflow = 'tensorflow'
 
 setup(classifiers=['Operating System :: OS Independent',
                    'Intended Audience :: Developers',

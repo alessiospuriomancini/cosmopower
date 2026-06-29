@@ -7,5 +7,7 @@ mkdocstrings
 matplotlib
 pytest
 pyDOE
-tensorflow<2.14
-tensorflow_probability<0.22
+h5py
+tensorflow>=2.18
+tensorflow_probability>=0.24
+tf-keras

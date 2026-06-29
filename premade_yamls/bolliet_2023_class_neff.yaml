@@ -1,0 +1,224 @@
+# This network packaging file was created post-hoc for the 
+# LCDM+Neff networks described in Bolliet et al. (2023) [arXiv:2303.01591].
+
+network_name: bolliet_2023_class_neff
+path: bolliet_2023_class_neff
+allow_pickle: True
+
+emulated_code:
+  name: classy
+  version: "2.9.4"
+  inputs: [omega_b, omega_cdm, "ln10^{10}A_s", n_s, tau_reio, H0, N_ur]
+  extra_args:
+    accurate_lensing: 1
+    k_max_tau0_over_l_lmax: 15.0
+    perturb_sampling_stepsize: 0.05
+
+samples:
+  Ntraining: 128000
+  
+  parameters:
+    omega_b: [0.01933, 0.02533]
+    omega_cdm: [0.08, 0.20]
+    ln10^{10}A_s: [2.5, 3.5]
+    H0: [39.99,100.01]
+    n_s: [0.8, 1.2]
+    tau_reio: [0.02, 0.12]
+    z_pk_save_nonclass: [0.0, 5.0]
+    N_ur: [0.49, 4.49]
+    # derived parameters
+    theta_s_100:
+    sigma8:
+    Y_p:
+    z_reio:
+    Neff:
+    taurec:
+    z_rec:
+    rs_rec:
+    ra_rec:
+    tau_star:
+    z_star:
+    rs_star:
+    ra_star:
+    r_drag:
+
+networks:
+  - quantity: derived
+    filename: derived-parameters/DER_neff_v1
+    type: NN
+    log: True
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, tau_reio, N_ur]
+    n_traits:
+      n_hidden: [ 512, 512, 512, 512 ]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: Cl/tt
+    filename: TTTEEE/TT_neff_v1
+    type: NN
+    log: True
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, tau_reio, N_ur]
+    modes:
+      label: l
+      range: [2,11000]
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: Cl/te
+    filename: TTTEEE/TE_neff_v1
+    type: PCAplusNN
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, tau_reio, N_ur]
+    modes:
+      label: l
+      range: [2,11000]
+    p_traits:
+      n_pcas: 64
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: Cl/ee
+    filename: TTTEEE/EE_neff_v1
+    type: NN
+    log: True
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, tau_reio, N_ur]
+    modes:
+      label: l
+      range: [2,11000]
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: Cl/pp
+    filename: PP/PP_neff_v1
+    type: NN
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, N_ur]
+    modes:
+      label: l
+      range: [2,11000]
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: Pk/lin
+    filename: PK/PKL_neff_v1
+    type: NN
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, z_pk_save_nonclass, N_ur]
+    modes:
+      label: k
+      range: [1e-4,50.0]
+      steps: 500
+      spacing: log
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: Pk/nonlin
+    filename: PK/PKNL_neff_v1
+    type: NN
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, z_pk_save_nonclass, N_ur]
+    modes:
+      label: k
+      range: [1e-4,50.0]
+      steps: 500
+      spacing: log
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: H
+    filename: growth-and-distances/HZ_neff_v1
+    type: NN
+    log: True
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s]
+    modes:
+      label: z
+      range: [0,20]
+      steps: 5000
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: angular_diameter_distance
+    filename: growth-and-distances/DAZ_neff_v1
+    type: NN
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, N_ur]
+    modes:
+      label: z
+      range: [0,20]
+      steps: 5000
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]
+
+  - quantity: sigma8z
+    filename: growth-and-distances/S8Z_neff_v1
+    type: NN
+    inputs: [omega_b, omega_cdm, "ln10^{10}A_s", H0, n_s, N_ur]
+    modes:
+      label: z
+      range: [0,20]
+      steps: 5000
+    n_traits:
+      n_hidden: [512, 512, 512, 512]
+    training:
+      validation_split: 0.2
+      learning_rates: [ 1.e-2, 1.e-3, 1.e-4, 1.e-5, 1.e-6 ]
+      batch_sizes: [ 1000, 10000, 20000, 3000, 50000 ]
+      gradient_accumulation_steps: [ 1, 1, 1, 1, 1 ]
+      patience_values: [ 100, 100, 100, 100, 100 ]
+      max_epochs: [ 1000, 1000, 1000, 1000, 1000 ]

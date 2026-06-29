@@ -1,0 +1,98 @@
+network_name: planck_cmb
+path: planck_cmb
+
+emulated_code:
+  name: camb
+  inputs: [ombh2, omch2, cosmomc_theta, ns, As, tau]
+  extra_args:
+    lens_potential_accuracy: 1
+
+samples:
+  training: 1000
+  validation: 100
+  testing: 100
+
+  parameters:
+    # These ranges are taken to be approx. 10x the Plik uncertainties
+    # from Planck 2018
+    ombh2: [0.020, 0.024]
+    omch2: [0.10, 0.14]
+    cosmomc_theta: [103.7e-4, 104.4e-4]
+    logA: [2.9, 3.2]
+    ns: [0.92, 1.01]
+    tau: [0.01, 0.12]
+
+    As: "lambda logA: 1.e-10 * np.exp(logA)"
+
+    # Here are several quantities of interest that we might want to include
+    # as derived parameters.
+    sigma8:
+    YHe:
+    zrei:
+    taurend:
+    zstar:
+    rstar:
+    rdrag:
+    zdrag:
+    H0:
+
+networks:
+  - quantity: "derived"
+    type: NN
+    inputs: [ombh2, omch2, cosmomc_theta, ns, logA, tau]
+    n_traits:
+      n_hidden: [512,512,512,512]
+    training:
+      learning_rates: [1.e-2, 1.e-3, 1.e-4, 1.e-5]
+      batch_sizes: [50, 100, 200, 500]
+      patience_values: 25
+      max_epochs: 1000
+
+  - quantity: "Cl/tt"
+    type: NN
+    inputs: [ombh2, omch2, cosmomc_theta, ns, logA, tau]
+    log: True
+    modes:
+      label: l
+      range: [2, 2508]
+    n_traits:
+      n_hidden: [512,512,512,512]
+    training:
+      learning_rates: [1.e-2, 1.e-3, 1.e-4, 1.e-5]
+      batch_sizes: [50, 100, 200, 500]
+      patience_values: 25
+      max_epochs: 1000
+
+  - quantity: "Cl/te"
+    type: PCAplusNN
+    inputs: [ombh2, omch2, cosmomc_theta, ns, logA, tau]
+    log: False
+    modes:
+      label: l
+      range: [2, 2508]
+    n_traits:
+      n_hidden: [512,512,512,512]
+    p_traits:
+      n_pcas: 25
+      n_batches: 5
+    training:
+      learning_rates: [1.e-2, 1.e-3, 1.e-4, 1.e-5]
+      batch_sizes: [50, 100, 200, 500]
+      patience_values: 25
+      max_epochs: 1000
+
+  - quantity: "Cl/ee"
+    type: NN
+    inputs: [ombh2, omch2, cosmomc_theta, ns, logA, tau]
+    log: True
+    modes:
+      label: l
+      range: [2, 2508]
+    n_traits:
+      n_hidden: [512,512,512,512]
+    training:
+      learning_rates: [1.e-2, 1.e-3, 1.e-4, 1.e-5]
+      batch_sizes: [50, 100, 200, 500]
+      patience_values: 25
+      max_epochs: 1000
+

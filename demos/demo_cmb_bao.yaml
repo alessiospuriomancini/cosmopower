@@ -1,0 +1,80 @@
+# Set the location for the sampler outputs
+# (samples, restart, progress files etc).
+output: output/demo_cmb_bao
+
+
+# Set the parameter ranges and priors to sample over
+params:
+  ombh2:
+    prior:
+      min: 0.01
+      max: 0.05
+    ref: 0.0225
+  omch2:
+    prior:
+      min: 0.01
+      max: 0.90
+    ref: 0.120
+  h:
+    prior:
+      min: 0.4
+      max: 1.0
+    ref: 0.7
+  H0:
+    value: "lambda h: 100.0 * h"
+  logA:
+    prior:
+      min: 2.0
+      max: 4.0
+    ref: 3.05
+  As:
+    value: "lambda logA: 1e-10 * np.exp(logA)"
+  ns:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref: 0.97
+  tau:
+    prior:
+      min: 0.01
+      max: 0.8
+    ref: 0.054
+
+
+# Add an extra prior e.g. this one on tau.
+priors:
+  tau_prior: "stats.norm.logpdf(tau, loc = 6.7e-2, scale = 2.3e-2)"
+
+
+# For testing use evaluate (likelihood calculated at one reference point).
+# Otherwise mcmc.
+sampler:
+  # mcmc:
+  evaluate:
+
+# Specify the Theory components to use. Here we use cosmpower for the Cl observables
+# but run normal CAMB in the background-only mode (which is fast) for background observables.
+# Note we use the 'provides' key within each theory, to specify which observables come from where
+# (in some cases observables can be available from more than one Theory).
+theory:
+  cosmopower:
+    package_file: ../cosmopower-organization/jense_2024_emulators/jense_2023_cmb_camb_lcdm.yaml
+    root_dir: ../cosmopower-organization/jense_2024_emulators/
+    provides: # Force cobaya to use the cosmopower-calculated versions of these
+      Cl:
+        tt:
+        te:
+        ee:
+        pp:
+  camb:
+    provides: # Force cobaya to use the camb-calculated versions of these
+      angular_diameter_distance:
+      Hubble:
+      fsigma8:
+
+# Include a BAO and CMB TTTEEE likelihood
+likelihood:
+  bao.sdss_dr12_consensus_final:
+    stop_at_error: True
+  planck_2018_highl_plik.TTTEEE_lite_native:
+    stop_at_error: True

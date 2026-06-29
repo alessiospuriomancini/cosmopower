@@ -13,6 +13,9 @@ tests/__pycache__
 # docs
 site/
 
+# Local environment
+.env
+
 # data
 spectra_small_te/
 
@@ -24,3 +27,6 @@ notebooks/getting_started_notebooks/.ipynb_checkpoints
 notebooks/training_notebooks/.ipynb_checkpoints
 notebooks/*.DS_Store
 .DS_Store
+
+# example files
+cosmopower/examples/example

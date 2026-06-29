@@ -1,0 +1,57 @@
+network_name: example
+path: example
+
+emulated_code:
+  name: camb
+  # which parameters are passed to camb
+  inputs: [ombh2, omch2, H0, ns, As, z]
+  extra_args:
+    # Some extra accuracy and speed parameters
+    kmax: 20.0
+    WantCls: False
+    NonLinearModel.Min_kh_nonlinear: 5.0e-5
+    NonLinearModel.halofit_version: "mead2020"
+
+samples:
+  # How many training, validation, and testing samples do we want to generate.
+  training: 400
+  validation: 20
+  testing: 20
+
+  # The parameters of the LHC over which the samples are generated.
+  parameters:
+    ombh2: [0.015, 0.030]
+    omch2: [0.05, 0.25]
+    h: [0.6, 0.9]
+    ns: [0.8, 1.1]
+    logA: [1.6,3.9]
+    z: [0.0, 5.0]
+
+    # Add in some translations for some parameters.
+    H0: "lambda h: h * 100.0"
+    As: "lambda logA: 1.e-10 * np.exp(logA)"
+
+networks:
+  # We want to create a linear P(k,z) emulator
+  - quantity: "Pk/lin"
+    # Simple, densely-connected neural network
+    type: NN
+    # Using these input parameters
+    inputs: [ombh2, omch2, logA, ns, h, z]
+    # We want to train it over log(P(k)) for improved accuracy.
+    log: True
+    # Over which k range is this emulator trained.
+    modes:
+      label: k
+      range: [1.e-4, 10.0]
+      spacing: log
+      steps: 1000
+    # How many layers of how many neurons do we want.
+    n_traits:
+      n_hidden: [512, 512, 512]
+    # Batch sizes and learning rates for the training sequence.
+    training:
+      learning_rates: [1.e-2, 1.e-3, 1.e-4]
+      batch_sizes: [25, 50, 100]
+      patience_values: 25
+      max_epochs: 1000
